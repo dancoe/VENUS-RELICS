@@ -70,6 +70,7 @@ When adding a new cluster:
 
 ## 🎨 UI Guidelines
 
+* Always display and keep updated the **build version date & timestamp** (e.g., `v YYYY-MM-DD HH:MM`) in the header kicker across all cluster browsers.
 * Always retain the **`22 High-z Sample`** quick reset button.
 * Ensure all links to RELICS STScI pages and live VENUS Hub pages open in `target="_blank"` with `rel="noreferrer"`.
 * Keep the design clean, responsive, and using the established editorial color palette (`--ink`, `--paper`, `--cyan`, `--coral`, `--yellow`).
