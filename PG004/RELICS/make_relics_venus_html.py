@@ -533,6 +533,8 @@ CLIENT_JS = """
 
 
 def build_page(rows, title="RELICS × VENUS · HST high-z matches"):
+    import datetime
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
     cards = "\n".join(target_card(row, index) for index, row in enumerate(rows, 1))
     highz_count = sum(float(row.get("relics_zb") or 0) >= 6 for row in rows)
     strict_count = sum(float(row.get("relics_zb") or 0) >= 6 and float(row.get("relics_zbmin") or 0) >= 4.5 for row in rows)
@@ -658,7 +660,7 @@ def build_page(rows, title="RELICS × VENUS · HST high-z matches"):
   <header class="masthead">
     <div class="masthead-inner">
       <div>
-        <p class="kicker"><a href="../../index.html">&larr; Cluster Evidence Hub</a> &middot; PG004</p>
+        <p class="kicker"><a href="../../index.html">&larr; Cluster Evidence Hub</a> &middot; PG004 &middot; <span style="color: var(--muted); font-weight: 500; font-size: 10px; margin-left: 6px;">v {timestamp}</span></p>
         <h1>RELICS × VENUS<br>HST high-z matches</h1>
         <p class="dek" id="dek-summary">Displaying {len(rows)} targets. <strong>{highz_count}</strong> have RELICS BPZ <strong>z ≥ 6</strong>, including <strong>{strict_count}</strong> with a conservative <strong>95% lower bound ≥ 4.5</strong>. HST color, RELICS BPZ evidence, and authenticated VENUS EAZY panels are shown side-by-side.</p>
       </div>
