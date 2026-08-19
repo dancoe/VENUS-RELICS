@@ -24,6 +24,8 @@
     .masthead-inner { width: 100%; padding: 34px 34px 28px; display: flex; gap: 36px; justify-content: space-between; align-items: end; }
     .kicker, .eyebrow, .evidence-label, dt { font-family: 'Helvetica Neue', Helvetica, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
     .kicker { color: var(--cyan); font-size: 11px; font-weight: 700; margin: 0 0 12px; }
+    .kicker a { text-decoration: none; }
+    .kicker a:hover { text-decoration: underline; }
     h1, h2, p { margin-top: 0; }
     h1 { font-size: clamp(34px, 5vw, 68px); line-height: .95; letter-spacing: -.025em; margin-bottom: 14px; font-weight: 500; max-width: 720px; }
     .dek { max-width: 760px; color: var(--muted); font-size: 17px; line-height: 1.55; margin-bottom: 0; }
@@ -32,12 +34,16 @@
     .count-label { color: var(--muted); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; margin-top: 10px; }
     
     .search-bar-container { padding: 18px 34px; background: #eaedf0; border-bottom: 1px solid var(--line); }
-    .search-bar { display: flex; gap: 14px; align-items: center; max-width: 900px; }
+    .search-bar { display: flex; gap: 14px; align-items: center; max-width: 1000px; }
     .search-bar label { font-family: 'Helvetica Neue', sans-serif; font-size: 13px; font-weight: 700; color: var(--ink); white-space: nowrap; }
     .search-bar input { flex: 1; padding: 10px 14px; font-size: 15px; border: 1px solid var(--line); border-radius: 4px; background: #fff; }
-    .search-bar button { padding: 10px 18px; font-size: 13px; font-weight: 600; border: none; border-radius: 4px; background: var(--cyan); color: #fff; cursor: pointer; }
+    .search-bar button { padding: 10px 18px; font-size: 13px; font-weight: 600; border: none; border-radius: 4px; background: var(--cyan); color: #fff; cursor: pointer; transition: background .15s; }
     .search-bar button:hover { background: #00686e; }
-    .search-hint { font-size: 11px; color: var(--muted); font-family: 'Helvetica Neue', sans-serif; margin-top: 6px; }
+    .search-bar button.btn-secondary { background: #71828a; margin-left: 6px; }
+    .search-bar button.btn-secondary:hover { background: #55646b; }
+    .search-hint { font-size: 12px; color: var(--muted); font-family: 'Helvetica Neue', sans-serif; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .quick-pill { display: inline-block; background: #d7e0dd; color: var(--ink); padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 6px; cursor: pointer; font-weight: 600; }
+    .quick-pill:hover { background: var(--cyan); color: #fff; }
 
     .layout { width: 100%; padding: 28px 34px 80px; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 34px; }
     .index { position: sticky; top: 18px; align-self: start; border-top: 3px solid var(--ink); padding-top: 13px; max-height: calc(100vh - 40px); overflow-y: auto; }
@@ -109,27 +115,32 @@
   <header class="masthead">
     <div class="masthead-inner">
       <div>
-        <p class="kicker">PG004 · evidence browser</p>
+        <p class="kicker"><a href="../../index.html">&larr; Cluster Evidence Hub</a> &middot; PG004</p>
         <h1>RELICS × VENUS<br>HST high-z matches</h1>
-        <p class="dek">Displaying 22 targets. <strong>6</strong> have RELICS BPZ <strong>z ≥ 6</strong>, including <strong>3</strong> with a conservative <strong>95% lower bound ≥ 4.5</strong>. HST color, RELICS BPZ evidence, and authenticated VENUS EAZY panels are shown side-by-side.</p>
+        <p class="dek" id="dek-summary">Displaying 22 targets. <strong>6</strong> have RELICS BPZ <strong>z ≥ 6</strong>, including <strong>3</strong> with a conservative <strong>95% lower bound ≥ 4.5</strong>. HST color, RELICS BPZ evidence, and authenticated VENUS EAZY panels are shown side-by-side.</p>
       </div>
-      <div class="count-block"><div class="count">22</div><div class="count-label">targets loaded<br>03 strict high-z agreements</div></div>
+      <div class="count-block"><div class="count" id="badge-count">22</div><div class="count-label">targets loaded<br><span id="badge-sublabel">03 strict high-z agreements</span></div></div>
     </div>
   </header>
-  
-    <div class="search-bar-container">
-      <div class="search-bar">
-        <label for="id-search">🔍 Quick Filter / Lookup IDs:</label>
-        <input type="text" id="id-search" placeholder="Type VENUS or RELICS ID (e.g. 5545, 222, 1600)..." autocomplete="off">
-        <button id="clear-btn" type="button">Clear</button>
-      </div>
-      <div class="search-hint">Interactive client filter enabled · Matches instant typing or comma-separated lists</div>
+
+  <div class="search-bar-container">
+    <div class="search-bar">
+      <label for="id-search">🔍 Lookup Any ID (11.7k JWST / 2.7k RELICS):</label>
+      <input type="text" id="id-search" placeholder="Type any VENUS or RELICS ID (e.g. 1234, 5545, 1983)..." autocomplete="off">
+      <button id="search-btn" type="button">Search</button>
+      <button id="reset-22-btn" class="btn-secondary" type="button">22 High-z Sample</button>
     </div>
-    
+    <div class="search-hint">
+      <span>Full catalog lookup enabled: queries all 11,699 JWST and 2,738 RELICS objects client-side in real-time.</span>
+      <span>Quick samples: <span class="quick-pill" data-id="1234">JWST 1234</span> <span class="quick-pill" data-id="5545">JWST 5545</span> <span class="quick-pill" data-id="1983">RELICS 1983</span></span>
+    </div>
+  </div>
+
   <main class="layout">
     <nav class="index" aria-label="Matched target index">
       <p class="index-title">Targets (<span id="visible-count">22</span>)</p>
-      <a href="#target-5545" data-jwst="5545" data-relics="222"><span>01</span>VENUS 5545 <b>↔</b> RELICS 222</a>
+      <div id="nav-container">
+        <a href="#target-5545" data-jwst="5545" data-relics="222"><span>01</span>VENUS 5545 <b>↔</b> RELICS 222</a>
 <a href="#target-2901" data-jwst="2901" data-relics="1483"><span>02</span>VENUS 2901 <b>↔</b> RELICS 1483</a>
 <a href="#target-3598" data-jwst="3598" data-relics="1156"><span>03</span>VENUS 3598 <b>↔</b> RELICS 1156</a>
 <a href="#target-4306" data-jwst="4306" data-relics="744"><span>04</span>VENUS 4306 <b>↔</b> RELICS 744</a>
@@ -151,6 +162,7 @@
 <a href="#target-5625" data-jwst="5625" data-relics="204"><span>20</span>VENUS 5625 <b>↔</b> RELICS 204</a>
 <a href="#target-1184" data-jwst="1184" data-relics="2268"><span>21</span>VENUS 1184 <b>↔</b> RELICS 2268</a>
 <a href="#target-4763" data-jwst="4763" data-relics="536"><span>22</span>VENUS 4763 <b>↔</b> RELICS 536</a>
+      </div>
     </nav>
     <section id="cards-container">
       
@@ -184,7 +196,7 @@
           <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 5545 · direct EAZY SED and posterior</small></div></div>
           <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/5545.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_5545.png" alt="VENUS EAZY SED and redshift probability plot for source 5545" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/5545.png?version=v0.2';"></a>
           <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/5545" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
-          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+          <p class="asset-note">Plot served locally when available; click to inspect interactive live session on VENUS Hub.</p>
         </section>
       </div>
     </article>
@@ -220,7 +232,7 @@
           <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 2901 · direct EAZY SED and posterior</small></div></div>
           <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/2901.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_2901.png" alt="VENUS EAZY SED and redshift probability plot for source 2901" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/2901.png?version=v0.2';"></a>
           <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/2901" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
-          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+          <p class="asset-note">Plot served locally when available; click to inspect interactive live session on VENUS Hub.</p>
         </section>
       </div>
     </article>
@@ -256,7 +268,7 @@
           <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 3598 · direct EAZY SED and posterior</small></div></div>
           <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/3598.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_3598.png" alt="VENUS EAZY SED and redshift probability plot for source 3598" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/3598.png?version=v0.2';"></a>
           <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/3598" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
-          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+          <p class="asset-note">Plot served locally when available; click to inspect interactive live session on VENUS Hub.</p>
         </section>
       </div>
     </article>
@@ -292,7 +304,7 @@
           <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 4306 · direct EAZY SED and posterior</small></div></div>
           <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/4306.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_4306.png" alt="VENUS EAZY SED and redshift probability plot for source 4306" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/4306.png?version=v0.2';"></a>
           <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/4306" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
-          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+          <p class="asset-note">Plot served locally when available; click to inspect interactive live session on VENUS Hub.</p>
         </section>
       </div>
     </article>
@@ -328,7 +340,7 @@
           <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 932 · direct EAZY SED and posterior</small></div></div>
           <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/932.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_932.png" alt="VENUS EAZY SED and redshift probability plot for source 932" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/932.png?version=v0.2';"></a>
           <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/932" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
-          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+          <p class="asset-note">Plot served locally when available; click to inspect interactive live session on VENUS Hub.</p>
         </section>
       </div>
     </article>
@@ -364,7 +376,7 @@
           <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 1977 · direct EAZY SED and posterior</small></div></div>
           <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/1977.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_1977.png" alt="VENUS EAZY SED and redshift probability plot for source 1977" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/1977.png?version=v0.2';"></a>
           <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/1977" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
-          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+          <p class="asset-note">Plot served locally when available; click to inspect interactive live session on VENUS Hub.</p>
         </section>
       </div>
     </article>
@@ -400,7 +412,7 @@
           <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 1600 · direct EAZY SED and posterior</small></div></div>
           <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/1600.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_1600.png" alt="VENUS EAZY SED and redshift probability plot for source 1600" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/1600.png?version=v0.2';"></a>
           <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/1600" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
-          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+          <p class="asset-note">Plot served locally when available; click to inspect interactive live session on VENUS Hub.</p>
         </section>
       </div>
     </article>
@@ -436,7 +448,7 @@
           <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 2512 · direct EAZY SED and posterior</small></div></div>
           <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/2512.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_2512.png" alt="VENUS EAZY SED and redshift probability plot for source 2512" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/2512.png?version=v0.2';"></a>
           <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/2512" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
-          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+          <p class="asset-note">Plot served locally when available; click to inspect interactive live session on VENUS Hub.</p>
         </section>
       </div>
     </article>
@@ -472,7 +484,7 @@
           <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 4039 · direct EAZY SED and posterior</small></div></div>
           <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/4039.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_4039.png" alt="VENUS EAZY SED and redshift probability plot for source 4039" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/4039.png?version=v0.2';"></a>
           <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/4039" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
-          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+          <p class="asset-note">Plot served locally when available; click to inspect interactive live session on VENUS Hub.</p>
         </section>
       </div>
     </article>
@@ -508,7 +520,7 @@
           <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 1262 · direct EAZY SED and posterior</small></div></div>
           <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/1262.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_1262.png" alt="VENUS EAZY SED and redshift probability plot for source 1262" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/1262.png?version=v0.2';"></a>
           <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/1262" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
-          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+          <p class="asset-note">Plot served locally when available; click to inspect interactive live session on VENUS Hub.</p>
         </section>
       </div>
     </article>
@@ -544,7 +556,7 @@
           <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 5665 · direct EAZY SED and posterior</small></div></div>
           <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/5665.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_5665.png" alt="VENUS EAZY SED and redshift probability plot for source 5665" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/5665.png?version=v0.2';"></a>
           <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/5665" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
-          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+          <p class="asset-note">Plot served locally when available; click to inspect interactive live session on VENUS Hub.</p>
         </section>
       </div>
     </article>
@@ -580,7 +592,7 @@
           <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 1899 · direct EAZY SED and posterior</small></div></div>
           <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/1899.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_1899.png" alt="VENUS EAZY SED and redshift probability plot for source 1899" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/1899.png?version=v0.2';"></a>
           <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/1899" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
-          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+          <p class="asset-note">Plot served locally when available; click to inspect interactive live session on VENUS Hub.</p>
         </section>
       </div>
     </article>
@@ -616,7 +628,7 @@
           <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 4260 · direct EAZY SED and posterior</small></div></div>
           <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/4260.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_4260.png" alt="VENUS EAZY SED and redshift probability plot for source 4260" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/4260.png?version=v0.2';"></a>
           <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/4260" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
-          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+          <p class="asset-note">Plot served locally when available; click to inspect interactive live session on VENUS Hub.</p>
         </section>
       </div>
     </article>
@@ -652,7 +664,7 @@
           <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 3720 · direct EAZY SED and posterior</small></div></div>
           <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/3720.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_3720.png" alt="VENUS EAZY SED and redshift probability plot for source 3720" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/3720.png?version=v0.2';"></a>
           <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/3720" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
-          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+          <p class="asset-note">Plot served locally when available; click to inspect interactive live session on VENUS Hub.</p>
         </section>
       </div>
     </article>
@@ -688,7 +700,7 @@
           <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 781 · direct EAZY SED and posterior</small></div></div>
           <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/781.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_781.png" alt="VENUS EAZY SED and redshift probability plot for source 781" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/781.png?version=v0.2';"></a>
           <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/781" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
-          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+          <p class="asset-note">Plot served locally when available; click to inspect interactive live session on VENUS Hub.</p>
         </section>
       </div>
     </article>
@@ -724,7 +736,7 @@
           <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 4006 · direct EAZY SED and posterior</small></div></div>
           <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/4006.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_4006.png" alt="VENUS EAZY SED and redshift probability plot for source 4006" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/4006.png?version=v0.2';"></a>
           <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/4006" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
-          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+          <p class="asset-note">Plot served locally when available; click to inspect interactive live session on VENUS Hub.</p>
         </section>
       </div>
     </article>
@@ -760,7 +772,7 @@
           <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 327 · direct EAZY SED and posterior</small></div></div>
           <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/327.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_327.png" alt="VENUS EAZY SED and redshift probability plot for source 327" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/327.png?version=v0.2';"></a>
           <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/327" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
-          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+          <p class="asset-note">Plot served locally when available; click to inspect interactive live session on VENUS Hub.</p>
         </section>
       </div>
     </article>
@@ -796,7 +808,7 @@
           <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 1801 · direct EAZY SED and posterior</small></div></div>
           <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/1801.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_1801.png" alt="VENUS EAZY SED and redshift probability plot for source 1801" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/1801.png?version=v0.2';"></a>
           <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/1801" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
-          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+          <p class="asset-note">Plot served locally when available; click to inspect interactive live session on VENUS Hub.</p>
         </section>
       </div>
     </article>
@@ -832,7 +844,7 @@
           <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 4335 · direct EAZY SED and posterior</small></div></div>
           <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/4335.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_4335.png" alt="VENUS EAZY SED and redshift probability plot for source 4335" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/4335.png?version=v0.2';"></a>
           <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/4335" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
-          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+          <p class="asset-note">Plot served locally when available; click to inspect interactive live session on VENUS Hub.</p>
         </section>
       </div>
     </article>
@@ -868,7 +880,7 @@
           <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 5625 · direct EAZY SED and posterior</small></div></div>
           <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/5625.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_5625.png" alt="VENUS EAZY SED and redshift probability plot for source 5625" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/5625.png?version=v0.2';"></a>
           <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/5625" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
-          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+          <p class="asset-note">Plot served locally when available; click to inspect interactive live session on VENUS Hub.</p>
         </section>
       </div>
     </article>
@@ -904,7 +916,7 @@
           <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 1184 · direct EAZY SED and posterior</small></div></div>
           <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/1184.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_1184.png" alt="VENUS EAZY SED and redshift probability plot for source 1184" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/1184.png?version=v0.2';"></a>
           <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/1184" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
-          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+          <p class="asset-note">Plot served locally when available; click to inspect interactive live session on VENUS Hub.</p>
         </section>
       </div>
     </article>
@@ -940,7 +952,7 @@
           <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 4763 · direct EAZY SED and posterior</small></div></div>
           <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/4763.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_4763.png" alt="VENUS EAZY SED and redshift probability plot for source 4763" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/4763.png?version=v0.2';"></a>
           <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/4763" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
-          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+          <p class="asset-note">Plot served locally when available; click to inspect interactive live session on VENUS Hub.</p>
         </section>
       </div>
     </article>
@@ -951,48 +963,234 @@
     Coordinate residuals use global astrometric offset: VENUS − HST = +0.536463 arcsec in projected RA and −0.001390 arcsec in Dec. Generated by <a href="make_relics_venus_html.py">make_relics_venus_html.py</a>.
   </footer>
 
-  <script>
-    const searchInput = document.getElementById('id-search');
-    const clearBtn = document.getElementById('clear-btn');
-    const visibleCount = document.getElementById('visible-count');
-    const targets = Array.from(document.querySelectorAll('.target'));
-    const navLinks = Array.from(document.querySelectorAll('.index a'));
+  
+<script>
+  let catalogDb = null;
+  const initial22Html = {
+    nav: document.getElementById('nav-container').innerHTML,
+    cards: document.getElementById('cards-container').innerHTML,
+    count: Number(document.getElementById('badge-count').textContent)
+  };
 
-    function filterTargets() {
-      const query = (searchInput.value || '').trim().toLowerCase();
-      if (!query) {
-        targets.forEach(t => t.classList.remove('hidden'));
-        navLinks.forEach(n => n.classList.remove('hidden'));
-        visibleCount.textContent = targets.length;
-        return;
-      }
-      const tokens = query.split(/[\s,]+/).filter(Boolean);
-      let count = 0;
+  // Load full catalog JSON in background
+  fetch('pg004_catalog.json')
+    .then(r => r.json())
+    .then(data => { catalogDb = data; console.log('Full catalog database loaded:', data.counts); })
+    .catch(err => console.warn('Note: pg004_catalog.json not loaded', err));
 
-      targets.forEach((target, i) => {
-        const jwst = (target.dataset.jwst || '').toLowerCase();
-        const relics = (target.dataset.relics || '').toLowerCase();
-        const match = tokens.some(t => jwst.includes(t) || relics.includes(t));
-        if (match) {
-          target.classList.remove('hidden');
-          navLinks[i].classList.remove('hidden');
-          count++;
-        } else {
-          target.classList.add('hidden');
-          navLinks[i].classList.add('hidden');
+  const searchInput = document.getElementById('id-search');
+  const searchBtn = document.getElementById('search-btn');
+  const reset22Btn = document.getElementById('reset-22-btn');
+  const visibleCount = document.getElementById('visible-count');
+  const badgeCount = document.getElementById('badge-count');
+  const badgeSublabel = document.getElementById('badge-sublabel');
+  const navContainer = document.getElementById('nav-container');
+  const cardsContainer = document.getElementById('cards-container');
+
+  function esc(s) {
+    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function fmtNum(v, d=3) {
+    if (v === null || v === undefined || v === '') return '--';
+    const f = parseFloat(v);
+    return isNaN(f) ? '--' : f.toFixed(d);
+  }
+
+  function toSexagesimalRa(deg) {
+    if (!deg || isNaN(deg)) return '--';
+    const hours = deg / 15.0;
+    const h = Math.floor(hours);
+    const mFloat = (hours - h) * 60;
+    const m = Math.floor(mFloat);
+    const s = (mFloat - m) * 60;
+    return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + s.toFixed(2).padStart(5,'0');
+  }
+
+  function toSexagesimalDec(deg) {
+    if (!deg || isNaN(deg)) return '--';
+    const sign = deg < 0 ? '-' : '+';
+    const abs = Math.abs(deg);
+    const d = Math.floor(abs);
+    const mFloat = (abs - d) * 60;
+    const m = Math.floor(mFloat);
+    const s = (mFloat - m) * 60;
+    return sign + String(d).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + s.toFixed(2).padStart(5,'0');
+  }
+
+  function createTargetCard(row, index) {
+    const jwstId = esc(row.jwst_id);
+    const relicsId = esc(row.relics_match_id);
+    const relicsPage = 'https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/' + relicsId + '.html';
+    const venusPage = 'https://venushub.astro.utoronto.ca/clusters/PG004/source/' + jwstId;
+    const colorImg = 'https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp' + relicsId + '.png';
+    const relicsSed = 'https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_' + relicsId + '.png';
+    const relicsPz = 'https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_' + relicsId + '.png';
+    const venusEazyLive = 'https://venushub.astro.utoronto.ca/clusters/PG004/eazy/' + jwstId + '.png?version=v0.2';
+    const venusEazyLocal = 'venus_eazy/venus_eazy_' + jwstId + '.png';
+
+    const relicsZb = parseFloat(row.relics_zb);
+    const relicsZbMin = parseFloat(row.relics_zbmin);
+    let agreeLabel = 'matched HST source';
+    if (relicsZb >= 6 && relicsZbMin >= 4.5) agreeLabel = 'strict HST high-z agreement';
+    else if (relicsZb >= 6) agreeLabel = 'RELICS BPZ high-z match';
+
+    const idxStr = String(index).padStart(2,'0');
+
+    return '<article class="target" id="target-' + jwstId + '" data-jwst="' + jwstId + '" data-relics="' + relicsId + '">' +
+      '<div class="target-heading">' +
+        '<div>' +
+          '<p class="eyebrow">Target ' + idxStr + ' · ' + agreeLabel + '</p>' +
+          '<h2><a class="venus-id" href="' + venusPage + '" target="_blank" rel="noreferrer">VENUS <span>' + jwstId + '</span></a> <small>↔</small> <a class="relics-id" href="' + relicsPage + '" target="_blank" rel="noreferrer">RELICS <span>' + relicsId + '</span></a></h2>' +
+          '<p class="coordinates"><strong>RA ' + toSexagesimalRa(row.jwst_ra) + '</strong> <span>(' + fmtNum(row.jwst_ra, 6) + '°)</span><b>·</b><strong>Dec ' + toSexagesimalDec(row.jwst_dec) + '</strong> <span>(' + fmtNum(row.jwst_dec, 6) + '°)</span></p>' +
+        '</div>' +
+      '</div>' +
+      '<dl class="redshift-summary">' +
+        '<div><dt>JWST VENUS</dt><dd>z = ' + fmtNum(row.jwst_z_phot, 3) + ' <span>[' + fmtNum(row.jwst_z025, 3) + ' – ' + fmtNum(row.jwst_z975, 3) + ']</span> <em>(95%)</em></dd></div>' +
+        '<div><dt>HST RELICS</dt><dd>z = ' + fmtNum(row.relics_zb, 3) + ' <span>[' + fmtNum(row.relics_zbmin, 3) + ' – ' + fmtNum(row.relics_zbmax, 3) + ']</span> <em>(95%)</em> <b class="inline-fact">stellarity ' + fmtNum(row.relics_stel, 2) + ' · match ' + fmtNum(row.corrected_separation_arcsec, 3) + '&Prime;</b></dd></div>' +
+      '</dl>' +
+      '<div class="evidence-stack">' +
+        '<section class="evidence evidence-color">' +
+          '<div class="evidence-label"><span>01</span><div><strong>RELICS HST color image</strong><small>ACS + IR color stamp · HST source ' + relicsId + '</small></div></div>' +
+          '<a href="' + colorImg + '" target="_blank" rel="noreferrer"><img src="' + colorImg + '" alt="RELICS HST ACS and IR stamp" loading="lazy"></a>' +
+        '</section>' +
+        '<section class="evidence evidence-relics">' +
+          '<div class="evidence-label"><span>02–03</span><div><strong>RELICS BPZ SED + P(z)</strong><small>HST photometry, BPZ model, and redshift probability</small></div></div>' +
+          '<div class="relics-plots">' +
+            '<a href="' + relicsSed + '" target="_blank" rel="noreferrer"><img src="' + relicsSed + '" alt="RELICS BPZ SED" loading="lazy"></a>' +
+            '<a href="' + relicsPz + '" target="_blank" rel="noreferrer"><img src="' + relicsPz + '" alt="RELICS BPZ P(z)" loading="lazy"></a>' +
+          '</div>' +
+        '</section>' +
+        '<section class="evidence evidence-wide venus-evidence">' +
+          '<div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS source ' + jwstId + ' · direct EAZY SED and posterior</small></div></div>' +
+          '<a href="' + venusEazyLive + '" target="_blank" rel="noreferrer"><img class="venus-panel" src="' + venusEazyLocal + '" alt="VENUS EAZY SED" loading="lazy" onerror="this.onerror=null; this.src=\'' + venusEazyLive + '\';"></a>' +
+          '<a class="asset-link" href="' + venusPage + '" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>' +
+          '<p class="asset-note">Plot served locally when cached; live view accessible on VENUS Hub.</p>' +
+        '</section>' +
+      '</div>' +
+    '</article>';
+  }
+
+  function executeLookup() {
+    const query = (searchInput.value || '').trim();
+    if (!query) {
+      restoreInitialSample();
+      return;
+    }
+
+    const tokens = query.split(/[\s,]+/).filter(Boolean);
+
+    if (catalogDb) {
+      const matchedList = [];
+      const seen = new Set();
+
+      tokens.forEach(tok => {
+        if (catalogDb.jwst[tok]) {
+          const j = catalogDb.jwst[tok];
+          const r = catalogDb.relics[j.match_r] || {};
+          if (!seen.has(tok)) {
+            seen.add(tok);
+            matchedList.push({
+              jwst_id: tok,
+              relics_match_id: j.match_r,
+              jwst_ra: j.ra,
+              jwst_dec: j.dec,
+              jwst_z_phot: j.z_phot,
+              jwst_z025: j.z025,
+              jwst_z975: j.z975,
+              relics_zb: r.zb,
+              relics_zbmin: r.zbmin,
+              relics_zbmax: r.zbmax,
+              relics_stel: r.stel,
+              corrected_separation_arcsec: j.sep
+            });
+          }
+        }
+        if (catalogDb.relics[tok]) {
+          const r = catalogDb.relics[tok];
+          const j = catalogDb.jwst[r.match_j] || {};
+          if (!seen.has(r.match_j)) {
+            seen.add(r.match_j);
+            matchedList.push({
+              jwst_id: r.match_j,
+              relics_match_id: tok,
+              jwst_ra: j.ra || r.ra,
+              jwst_dec: j.dec || r.dec,
+              jwst_z_phot: j.z_phot,
+              jwst_z025: j.z025,
+              jwst_z975: j.z975,
+              relics_zb: r.zb,
+              relics_zbmin: r.zbmin,
+              relics_zbmax: r.zbmax,
+              relics_stel: r.stel,
+              corrected_separation_arcsec: r.sep
+            });
+          }
         }
       });
-      visibleCount.textContent = count;
+
+      if (matchedList.length > 0) {
+        navContainer.innerHTML = matchedList.map((m, i) =>
+          '<a href="#target-' + esc(m.jwst_id) + '" data-jwst="' + esc(m.jwst_id) + '" data-relics="' + esc(m.relics_match_id) + '">' +
+            '<span>' + String(i+1).padStart(2,'0') + '</span>VENUS ' + esc(m.jwst_id) + ' <b>↔</b> RELICS ' + esc(m.relics_match_id) +
+          '</a>'
+        ).join('');
+        cardsContainer.innerHTML = matchedList.map((m, i) => createTargetCard(m, i+1)).join('');
+        visibleCount.textContent = matchedList.length;
+        badgeCount.textContent = String(matchedList.length).padStart(2, '0');
+        badgeSublabel.textContent = 'full catalog match';
+        return;
+      }
     }
 
-    if (searchInput) {
-      searchInput.addEventListener('input', filterTargets);
-      clearBtn.addEventListener('click', () => {
-        searchInput.value = '';
-        filterTargets();
-        searchInput.focus();
+    // Fallback: in-memory DOM filtering
+    let count = 0;
+    const currentTargets = Array.from(cardsContainer.querySelectorAll('.target'));
+    const navLinks = Array.from(navContainer.querySelectorAll('a'));
+    currentTargets.forEach((target, i) => {
+      const jwst = (target.dataset.jwst || '').toLowerCase();
+      const relics = (target.dataset.relics || '').toLowerCase();
+      const match = tokens.some(t => jwst.includes(t) || relics.includes(t));
+      if (match) {
+        target.classList.remove('hidden');
+        if (navLinks[i]) navLinks[i].classList.remove('hidden');
+        count++;
+      } else {
+        target.classList.add('hidden');
+        if (navLinks[i]) navLinks[i].classList.add('hidden');
+      }
+    });
+    visibleCount.textContent = count;
+    badgeCount.textContent = String(count).padStart(2, '0');
+  }
+
+  function restoreInitialSample() {
+    searchInput.value = '';
+    navContainer.innerHTML = initial22Html.nav;
+    cardsContainer.innerHTML = initial22Html.cards;
+    visibleCount.textContent = initial22Html.count;
+    badgeCount.textContent = String(initial22Html.count).padStart(2, '0');
+    badgeSublabel.textContent = 'initial high-z sample';
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      if (searchInput.value.trim().length === 0) restoreInitialSample();
+    });
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') executeLookup();
+    });
+    searchBtn.addEventListener('click', executeLookup);
+    reset22Btn.addEventListener('click', restoreInitialSample);
+
+    document.querySelectorAll('.quick-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        searchInput.value = pill.dataset.id;
+        executeLookup();
       });
-    }
-  </script>
+    });
+  }
+</script>
+
 </body>
 </html>

@@ -3,8 +3,9 @@
 
 Supports:
 - CLI generation of default or subset pages by RELICS ID, JWST ID, or coords
-- Dynamic on-the-fly crossmatching against full catalogs
+- Dynamic on-the-fly crossmatching against full catalogs (11.7k JWST + 2.7k RELICS)
 - Automated fetching & caching of authenticated VENUS EAZY plots
+- Full client-side catalog search embedded into the page for GitHub Pages
 - Built-in lightweight local web server with live search & filtering UI
 """
 
@@ -29,6 +30,7 @@ from astropy.coordinates import SkyCoord
 DEFAULT_CROSSMATCH = Path("relics_jwst_coordinate_match.csv")
 RELICS_FULL_CAT = Path("plckg004-19.cat")
 JWST_FULL_CSV = Path("pg004_aphot_cut_wzphots.csv")
+CATALOG_JSON = Path("pg004_catalog.json")
 DEFAULT_OUTPUT = Path("RELICS_VENUS.html")
 EAZY_CACHE_DIR = Path("venus_eazy")
 
@@ -292,14 +294,245 @@ def target_card(row, index):
           <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source {esc(jwst_id)} · direct EAZY SED and posterior</small></div></div>
           <a href="{esc(venus_eazy)}" target="_blank" rel="noreferrer"><img class="venus-panel" src="{esc(venus_eazy_local)}" alt="VENUS EAZY SED and redshift probability plot for source {esc(jwst_id)}" loading="lazy" onerror="this.onerror=null; this.src='{esc(venus_eazy)}';"></a>
           <a class="asset-link" href="{esc(venus_page)}" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
-          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+          <p class="asset-note">Plot served locally when available; click to inspect interactive live session on VENUS Hub.</p>
         </section>
       </div>
     </article>
     """
 
 
-def build_page(rows, title="RELICS × VENUS · HST high-z matches", is_app=False):
+CLIENT_JS = """
+<script>
+  let catalogDb = null;
+  const initial22Html = {
+    nav: document.getElementById('nav-container').innerHTML,
+    cards: document.getElementById('cards-container').innerHTML,
+    count: Number(document.getElementById('badge-count').textContent)
+  };
+
+  // Load full catalog JSON in background
+  fetch('pg004_catalog.json')
+    .then(r => r.json())
+    .then(data => { catalogDb = data; console.log('Full catalog database loaded:', data.counts); })
+    .catch(err => console.warn('Note: pg004_catalog.json not loaded', err));
+
+  const searchInput = document.getElementById('id-search');
+  const searchBtn = document.getElementById('search-btn');
+  const reset22Btn = document.getElementById('reset-22-btn');
+  const visibleCount = document.getElementById('visible-count');
+  const badgeCount = document.getElementById('badge-count');
+  const badgeSublabel = document.getElementById('badge-sublabel');
+  const navContainer = document.getElementById('nav-container');
+  const cardsContainer = document.getElementById('cards-container');
+
+  function esc(s) {
+    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function fmtNum(v, d=3) {
+    if (v === null || v === undefined || v === '') return '--';
+    const f = parseFloat(v);
+    return isNaN(f) ? '--' : f.toFixed(d);
+  }
+
+  function toSexagesimalRa(deg) {
+    if (!deg || isNaN(deg)) return '--';
+    const hours = deg / 15.0;
+    const h = Math.floor(hours);
+    const mFloat = (hours - h) * 60;
+    const m = Math.floor(mFloat);
+    const s = (mFloat - m) * 60;
+    return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + s.toFixed(2).padStart(5,'0');
+  }
+
+  function toSexagesimalDec(deg) {
+    if (!deg || isNaN(deg)) return '--';
+    const sign = deg < 0 ? '-' : '+';
+    const abs = Math.abs(deg);
+    const d = Math.floor(abs);
+    const mFloat = (abs - d) * 60;
+    const m = Math.floor(mFloat);
+    const s = (mFloat - m) * 60;
+    return sign + String(d).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + s.toFixed(2).padStart(5,'0');
+  }
+
+  function createTargetCard(row, index) {
+    const jwstId = esc(row.jwst_id);
+    const relicsId = esc(row.relics_match_id);
+    const relicsPage = 'https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/' + relicsId + '.html';
+    const venusPage = 'https://venushub.astro.utoronto.ca/clusters/PG004/source/' + jwstId;
+    const colorImg = 'https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp' + relicsId + '.png';
+    const relicsSed = 'https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_' + relicsId + '.png';
+    const relicsPz = 'https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_' + relicsId + '.png';
+    const venusEazyLive = 'https://venushub.astro.utoronto.ca/clusters/PG004/eazy/' + jwstId + '.png?version=v0.2';
+    const venusEazyLocal = 'venus_eazy/venus_eazy_' + jwstId + '.png';
+
+    const relicsZb = parseFloat(row.relics_zb);
+    const relicsZbMin = parseFloat(row.relics_zbmin);
+    let agreeLabel = 'matched HST source';
+    if (relicsZb >= 6 && relicsZbMin >= 4.5) agreeLabel = 'strict HST high-z agreement';
+    else if (relicsZb >= 6) agreeLabel = 'RELICS BPZ high-z match';
+
+    const idxStr = String(index).padStart(2,'0');
+
+    return '<article class="target" id="target-' + jwstId + '" data-jwst="' + jwstId + '" data-relics="' + relicsId + '">' +
+      '<div class="target-heading">' +
+        '<div>' +
+          '<p class="eyebrow">Target ' + idxStr + ' · ' + agreeLabel + '</p>' +
+          '<h2><a class="venus-id" href="' + venusPage + '" target="_blank" rel="noreferrer">VENUS <span>' + jwstId + '</span></a> <small>↔</small> <a class="relics-id" href="' + relicsPage + '" target="_blank" rel="noreferrer">RELICS <span>' + relicsId + '</span></a></h2>' +
+          '<p class="coordinates"><strong>RA ' + toSexagesimalRa(row.jwst_ra) + '</strong> <span>(' + fmtNum(row.jwst_ra, 6) + '°)</span><b>·</b><strong>Dec ' + toSexagesimalDec(row.jwst_dec) + '</strong> <span>(' + fmtNum(row.jwst_dec, 6) + '°)</span></p>' +
+        '</div>' +
+      '</div>' +
+      '<dl class="redshift-summary">' +
+        '<div><dt>JWST VENUS</dt><dd>z = ' + fmtNum(row.jwst_z_phot, 3) + ' <span>[' + fmtNum(row.jwst_z025, 3) + ' – ' + fmtNum(row.jwst_z975, 3) + ']</span> <em>(95%)</em></dd></div>' +
+        '<div><dt>HST RELICS</dt><dd>z = ' + fmtNum(row.relics_zb, 3) + ' <span>[' + fmtNum(row.relics_zbmin, 3) + ' – ' + fmtNum(row.relics_zbmax, 3) + ']</span> <em>(95%)</em> <b class="inline-fact">stellarity ' + fmtNum(row.relics_stel, 2) + ' · match ' + fmtNum(row.corrected_separation_arcsec, 3) + '&Prime;</b></dd></div>' +
+      '</dl>' +
+      '<div class="evidence-stack">' +
+        '<section class="evidence evidence-color">' +
+          '<div class="evidence-label"><span>01</span><div><strong>RELICS HST color image</strong><small>ACS + IR color stamp · HST source ' + relicsId + '</small></div></div>' +
+          '<a href="' + colorImg + '" target="_blank" rel="noreferrer"><img src="' + colorImg + '" alt="RELICS HST ACS and IR stamp" loading="lazy"></a>' +
+        '</section>' +
+        '<section class="evidence evidence-relics">' +
+          '<div class="evidence-label"><span>02–03</span><div><strong>RELICS BPZ SED + P(z)</strong><small>HST photometry, BPZ model, and redshift probability</small></div></div>' +
+          '<div class="relics-plots">' +
+            '<a href="' + relicsSed + '" target="_blank" rel="noreferrer"><img src="' + relicsSed + '" alt="RELICS BPZ SED" loading="lazy"></a>' +
+            '<a href="' + relicsPz + '" target="_blank" rel="noreferrer"><img src="' + relicsPz + '" alt="RELICS BPZ P(z)" loading="lazy"></a>' +
+          '</div>' +
+        '</section>' +
+        '<section class="evidence evidence-wide venus-evidence">' +
+          '<div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS source ' + jwstId + ' · direct EAZY SED and posterior</small></div></div>' +
+          '<a href="' + venusEazyLive + '" target="_blank" rel="noreferrer"><img class="venus-panel" src="' + venusEazyLocal + '" alt="VENUS EAZY SED" loading="lazy" onerror="this.onerror=null; this.src=\\'' + venusEazyLive + '\\';"></a>' +
+          '<a class="asset-link" href="' + venusPage + '" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>' +
+          '<p class="asset-note">Plot served locally when cached; live view accessible on VENUS Hub.</p>' +
+        '</section>' +
+      '</div>' +
+    '</article>';
+  }
+
+  function executeLookup() {
+    const query = (searchInput.value || '').trim();
+    if (!query) {
+      restoreInitialSample();
+      return;
+    }
+
+    const tokens = query.split(/[\\s,]+/).filter(Boolean);
+
+    if (catalogDb) {
+      const matchedList = [];
+      const seen = new Set();
+
+      tokens.forEach(tok => {
+        if (catalogDb.jwst[tok]) {
+          const j = catalogDb.jwst[tok];
+          const r = catalogDb.relics[j.match_r] || {};
+          if (!seen.has(tok)) {
+            seen.add(tok);
+            matchedList.push({
+              jwst_id: tok,
+              relics_match_id: j.match_r,
+              jwst_ra: j.ra,
+              jwst_dec: j.dec,
+              jwst_z_phot: j.z_phot,
+              jwst_z025: j.z025,
+              jwst_z975: j.z975,
+              relics_zb: r.zb,
+              relics_zbmin: r.zbmin,
+              relics_zbmax: r.zbmax,
+              relics_stel: r.stel,
+              corrected_separation_arcsec: j.sep
+            });
+          }
+        }
+        if (catalogDb.relics[tok]) {
+          const r = catalogDb.relics[tok];
+          const j = catalogDb.jwst[r.match_j] || {};
+          if (!seen.has(r.match_j)) {
+            seen.add(r.match_j);
+            matchedList.push({
+              jwst_id: r.match_j,
+              relics_match_id: tok,
+              jwst_ra: j.ra || r.ra,
+              jwst_dec: j.dec || r.dec,
+              jwst_z_phot: j.z_phot,
+              jwst_z025: j.z025,
+              jwst_z975: j.z975,
+              relics_zb: r.zb,
+              relics_zbmin: r.zbmin,
+              relics_zbmax: r.zbmax,
+              relics_stel: r.stel,
+              corrected_separation_arcsec: r.sep
+            });
+          }
+        }
+      });
+
+      if (matchedList.length > 0) {
+        navContainer.innerHTML = matchedList.map((m, i) =>
+          '<a href="#target-' + esc(m.jwst_id) + '" data-jwst="' + esc(m.jwst_id) + '" data-relics="' + esc(m.relics_match_id) + '">' +
+            '<span>' + String(i+1).padStart(2,'0') + '</span>VENUS ' + esc(m.jwst_id) + ' <b>↔</b> RELICS ' + esc(m.relics_match_id) +
+          '</a>'
+        ).join('');
+        cardsContainer.innerHTML = matchedList.map((m, i) => createTargetCard(m, i+1)).join('');
+        visibleCount.textContent = matchedList.length;
+        badgeCount.textContent = String(matchedList.length).padStart(2, '0');
+        badgeSublabel.textContent = 'full catalog match';
+        return;
+      }
+    }
+
+    // Fallback: in-memory DOM filtering
+    let count = 0;
+    const currentTargets = Array.from(cardsContainer.querySelectorAll('.target'));
+    const navLinks = Array.from(navContainer.querySelectorAll('a'));
+    currentTargets.forEach((target, i) => {
+      const jwst = (target.dataset.jwst || '').toLowerCase();
+      const relics = (target.dataset.relics || '').toLowerCase();
+      const match = tokens.some(t => jwst.includes(t) || relics.includes(t));
+      if (match) {
+        target.classList.remove('hidden');
+        if (navLinks[i]) navLinks[i].classList.remove('hidden');
+        count++;
+      } else {
+        target.classList.add('hidden');
+        if (navLinks[i]) navLinks[i].classList.add('hidden');
+      }
+    });
+    visibleCount.textContent = count;
+    badgeCount.textContent = String(count).padStart(2, '0');
+  }
+
+  function restoreInitialSample() {
+    searchInput.value = '';
+    navContainer.innerHTML = initial22Html.nav;
+    cardsContainer.innerHTML = initial22Html.cards;
+    visibleCount.textContent = initial22Html.count;
+    badgeCount.textContent = String(initial22Html.count).padStart(2, '0');
+    badgeSublabel.textContent = 'initial high-z sample';
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      if (searchInput.value.trim().length === 0) restoreInitialSample();
+    });
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') executeLookup();
+    });
+    searchBtn.addEventListener('click', executeLookup);
+    reset22Btn.addEventListener('click', restoreInitialSample);
+
+    document.querySelectorAll('.quick-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        searchInput.value = pill.dataset.id;
+        executeLookup();
+      });
+    });
+  }
+</script>
+"""
+
+
+def build_page(rows, title="RELICS × VENUS · HST high-z matches"):
     cards = "\n".join(target_card(row, index) for index, row in enumerate(rows, 1))
     highz_count = sum(float(row.get("relics_zb") or 0) >= 6 for row in rows)
     strict_count = sum(float(row.get("relics_zb") or 0) >= 6 and float(row.get("relics_zbmin") or 0) >= 4.5 for row in rows)
@@ -307,17 +540,6 @@ def build_page(rows, title="RELICS × VENUS · HST high-z matches", is_app=False
         f'<a href="#target-{esc(row["jwst_id"])}" data-jwst="{esc(row["jwst_id"])}" data-relics="{esc(row["relics_match_id"])}"><span>{index:02d}</span>VENUS {esc(row["jwst_id"])} <b>↔</b> RELICS {esc(row["relics_match_id"])}</a>'
         for index, row in enumerate(rows, 1)
     )
-
-    app_bar = """
-    <div class="search-bar-container">
-      <div class="search-bar">
-        <label for="id-search">🔍 Quick Filter / Lookup IDs:</label>
-        <input type="text" id="id-search" placeholder="Type VENUS or RELICS ID (e.g. 5545, 222, 1600)..." autocomplete="off">
-        <button id="clear-btn" type="button">Clear</button>
-      </div>
-      <div class="search-hint">Interactive client filter enabled · Matches instant typing or comma-separated lists</div>
-    </div>
-    """
 
     return f"""<!doctype html>
 <html lang="en">
@@ -345,6 +567,8 @@ def build_page(rows, title="RELICS × VENUS · HST high-z matches", is_app=False
     .masthead-inner {{ width: 100%; padding: 34px 34px 28px; display: flex; gap: 36px; justify-content: space-between; align-items: end; }}
     .kicker, .eyebrow, .evidence-label, dt {{ font-family: 'Helvetica Neue', Helvetica, sans-serif; letter-spacing: .08em; text-transform: uppercase; }}
     .kicker {{ color: var(--cyan); font-size: 11px; font-weight: 700; margin: 0 0 12px; }}
+    .kicker a {{ text-decoration: none; }}
+    .kicker a:hover {{ text-decoration: underline; }}
     h1, h2, p {{ margin-top: 0; }}
     h1 {{ font-size: clamp(34px, 5vw, 68px); line-height: .95; letter-spacing: -.025em; margin-bottom: 14px; font-weight: 500; max-width: 720px; }}
     .dek {{ max-width: 760px; color: var(--muted); font-size: 17px; line-height: 1.55; margin-bottom: 0; }}
@@ -353,12 +577,16 @@ def build_page(rows, title="RELICS × VENUS · HST high-z matches", is_app=False
     .count-label {{ color: var(--muted); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; margin-top: 10px; }}
     
     .search-bar-container {{ padding: 18px 34px; background: #eaedf0; border-bottom: 1px solid var(--line); }}
-    .search-bar {{ display: flex; gap: 14px; align-items: center; max-width: 900px; }}
+    .search-bar {{ display: flex; gap: 14px; align-items: center; max-width: 1000px; }}
     .search-bar label {{ font-family: 'Helvetica Neue', sans-serif; font-size: 13px; font-weight: 700; color: var(--ink); white-space: nowrap; }}
     .search-bar input {{ flex: 1; padding: 10px 14px; font-size: 15px; border: 1px solid var(--line); border-radius: 4px; background: #fff; }}
-    .search-bar button {{ padding: 10px 18px; font-size: 13px; font-weight: 600; border: none; border-radius: 4px; background: var(--cyan); color: #fff; cursor: pointer; }}
+    .search-bar button {{ padding: 10px 18px; font-size: 13px; font-weight: 600; border: none; border-radius: 4px; background: var(--cyan); color: #fff; cursor: pointer; transition: background .15s; }}
     .search-bar button:hover {{ background: #00686e; }}
-    .search-hint {{ font-size: 11px; color: var(--muted); font-family: 'Helvetica Neue', sans-serif; margin-top: 6px; }}
+    .search-bar button.btn-secondary {{ background: #71828a; margin-left: 6px; }}
+    .search-bar button.btn-secondary:hover {{ background: #55646b; }}
+    .search-hint {{ font-size: 12px; color: var(--muted); font-family: 'Helvetica Neue', sans-serif; margin-top: 8px; display: flex; justify-content: space-between; align-items: center; }}
+    .quick-pill {{ display: inline-block; background: #d7e0dd; color: var(--ink); padding: 2px 8px; border-radius: 12px; font-size: 11px; margin-left: 6px; cursor: pointer; font-weight: 600; }}
+    .quick-pill:hover {{ background: var(--cyan); color: #fff; }}
 
     .layout {{ width: 100%; padding: 28px 34px 80px; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 34px; }}
     .index {{ position: sticky; top: 18px; align-self: start; border-top: 3px solid var(--ink); padding-top: 13px; max-height: calc(100vh - 40px); overflow-y: auto; }}
@@ -430,18 +658,33 @@ def build_page(rows, title="RELICS × VENUS · HST high-z matches", is_app=False
   <header class="masthead">
     <div class="masthead-inner">
       <div>
-        <p class="kicker">PG004 · evidence browser</p>
+        <p class="kicker"><a href="../../index.html">&larr; Cluster Evidence Hub</a> &middot; PG004</p>
         <h1>RELICS × VENUS<br>HST high-z matches</h1>
-        <p class="dek">Displaying {len(rows)} targets. <strong>{highz_count}</strong> have RELICS BPZ <strong>z ≥ 6</strong>, including <strong>{strict_count}</strong> with a conservative <strong>95% lower bound ≥ 4.5</strong>. HST color, RELICS BPZ evidence, and authenticated VENUS EAZY panels are shown side-by-side.</p>
+        <p class="dek" id="dek-summary">Displaying {len(rows)} targets. <strong>{highz_count}</strong> have RELICS BPZ <strong>z ≥ 6</strong>, including <strong>{strict_count}</strong> with a conservative <strong>95% lower bound ≥ 4.5</strong>. HST color, RELICS BPZ evidence, and authenticated VENUS EAZY panels are shown side-by-side.</p>
       </div>
-      <div class="count-block"><div class="count">{len(rows):02d}</div><div class="count-label">targets loaded<br>{strict_count:02d} strict high-z agreements</div></div>
+      <div class="count-block"><div class="count" id="badge-count">{len(rows):02d}</div><div class="count-label">targets loaded<br><span id="badge-sublabel">{strict_count:02d} strict high-z agreements</span></div></div>
     </div>
   </header>
-  {app_bar}
+
+  <div class="search-bar-container">
+    <div class="search-bar">
+      <label for="id-search">🔍 Lookup Any ID (11.7k JWST / 2.7k RELICS):</label>
+      <input type="text" id="id-search" placeholder="Type any VENUS or RELICS ID (e.g. 1234, 5545, 1983)..." autocomplete="off">
+      <button id="search-btn" type="button">Search</button>
+      <button id="reset-22-btn" class="btn-secondary" type="button">22 High-z Sample</button>
+    </div>
+    <div class="search-hint">
+      <span>Full catalog lookup enabled: queries all 11,699 JWST and 2,738 RELICS objects client-side in real-time.</span>
+      <span>Quick samples: <span class="quick-pill" data-id="1234">JWST 1234</span> <span class="quick-pill" data-id="5545">JWST 5545</span> <span class="quick-pill" data-id="1983">RELICS 1983</span></span>
+    </div>
+  </div>
+
   <main class="layout">
     <nav class="index" aria-label="Matched target index">
       <p class="index-title">Targets (<span id="visible-count">{len(rows)}</span>)</p>
-      {nav}
+      <div id="nav-container">
+        {nav}
+      </div>
     </nav>
     <section id="cards-container">
       {cards}
@@ -451,49 +694,7 @@ def build_page(rows, title="RELICS × VENUS · HST high-z matches", is_app=False
     Coordinate residuals use global astrometric offset: VENUS − HST = +0.536463 arcsec in projected RA and −0.001390 arcsec in Dec. Generated by <a href="make_relics_venus_html.py">make_relics_venus_html.py</a>.
   </footer>
 
-  <script>
-    const searchInput = document.getElementById('id-search');
-    const clearBtn = document.getElementById('clear-btn');
-    const visibleCount = document.getElementById('visible-count');
-    const targets = Array.from(document.querySelectorAll('.target'));
-    const navLinks = Array.from(document.querySelectorAll('.index a'));
-
-    function filterTargets() {{
-      const query = (searchInput.value || '').trim().toLowerCase();
-      if (!query) {{
-        targets.forEach(t => t.classList.remove('hidden'));
-        navLinks.forEach(n => n.classList.remove('hidden'));
-        visibleCount.textContent = targets.length;
-        return;
-      }}
-      const tokens = query.split(/[\s,]+/).filter(Boolean);
-      let count = 0;
-
-      targets.forEach((target, i) => {{
-        const jwst = (target.dataset.jwst || '').toLowerCase();
-        const relics = (target.dataset.relics || '').toLowerCase();
-        const match = tokens.some(t => jwst.includes(t) || relics.includes(t));
-        if (match) {{
-          target.classList.remove('hidden');
-          navLinks[i].classList.remove('hidden');
-          count++;
-        }} else {{
-          target.classList.add('hidden');
-          navLinks[i].classList.add('hidden');
-        }}
-      }});
-      visibleCount.textContent = count;
-    }}
-
-    if (searchInput) {{
-      searchInput.addEventListener('input', filterTargets);
-      clearBtn.addEventListener('click', () => {{
-        searchInput.value = '';
-        filterTargets();
-        searchInput.focus();
-      }});
-    }}
-  </script>
+  {CLIENT_JS}
 </body>
 </html>"""
 
@@ -506,7 +707,6 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             venus_ids = query_params.get("venus_id", [])
             relics_ids = query_params.get("relics_id", [])
             
-            # Support comma-separated strings
             v_list = []
             for v in venus_ids:
                 v_list.extend(v.split(","))
@@ -518,7 +718,7 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             for row in matched_rows:
                 ensure_eazy_plot(row["jwst_id"])
 
-            html_content = build_page(matched_rows, title="RELICS × VENUS Search Results", is_app=True)
+            html_content = build_page(matched_rows, title="RELICS × VENUS Search Results")
             self.send_response(200)
             self.send_header("Content-type", "text/html; charset=utf-8")
             self.send_header("Content-length", str(len(html_content.encode("utf-8"))))
@@ -577,14 +777,12 @@ def main():
 
     args = parser.parse_args()
 
-    # If --serve is requested, build default page first and start server
     if args.serve:
         rows = load_precomputed_crossmatch()
-        args.output.write_text(build_page(rows, is_app=True), encoding="utf-8")
+        args.output.write_text(build_page(rows), encoding="utf-8")
         run_server(args.port)
         return
 
-    # Check if specific IDs were requested
     if args.relics_ids or args.venus_ids:
         r_ids = []
         if args.relics_ids:
@@ -602,14 +800,13 @@ def main():
         rows = load_precomputed_crossmatch()
         title = "RELICS × VENUS · HST high-z matches"
 
-    # Ensure EAZY plots are downloaded
     if args.fetch_eazy:
         for r in rows:
             jid = r.get("jwst_id")
             if jid:
                 ensure_eazy_plot(jid)
 
-    html_text = build_page(rows, title=title, is_app=True)
+    html_text = build_page(rows, title=title)
     args.output.write_text(html_text, encoding="utf-8")
     print(f"✅ Successfully wrote {args.output} with {len(rows)} targets.")
 
