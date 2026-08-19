@@ -1,0 +1,998 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RELICS × VENUS · HST high-z matches</title>
+  <style>
+    :root {
+      --ink: #15262b;
+      --muted: #607477;
+      --paper: #f4f1e9;
+      --panel: #fffdf8;
+      --line: #d8ddd5;
+      --cyan: #007f86;
+      --yellow: #f2c94c;
+      --coral: #c95d4e;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; color: var(--ink); background: var(--paper); font-family: Georgia, 'Times New Roman', serif; }
+    body::before { content: ''; position: fixed; inset: 0; pointer-events: none; opacity: .28; background-image: linear-gradient(135deg, rgba(0,127,134,.06) 25%, transparent 25%), linear-gradient(315deg, rgba(201,93,78,.035) 25%, transparent 25%); background-size: 34px 34px; z-index: -1; }
+    a { color: inherit; }
+    .masthead { border-bottom: 1px solid var(--line); background: rgba(244,241,233,.94); }
+    .masthead-inner { width: 100%; padding: 34px 34px 28px; display: flex; gap: 36px; justify-content: space-between; align-items: end; }
+    .kicker, .eyebrow, .evidence-label, dt { font-family: 'Helvetica Neue', Helvetica, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+    .kicker { color: var(--cyan); font-size: 11px; font-weight: 700; margin: 0 0 12px; }
+    h1, h2, p { margin-top: 0; }
+    h1 { font-size: clamp(34px, 5vw, 68px); line-height: .95; letter-spacing: -.025em; margin-bottom: 14px; font-weight: 500; max-width: 720px; }
+    .dek { max-width: 760px; color: var(--muted); font-size: 17px; line-height: 1.55; margin-bottom: 0; }
+    .count-block { min-width: 180px; text-align: right; font-family: 'Helvetica Neue', Helvetica, sans-serif; }
+    .count { color: var(--coral); font-size: 50px; line-height: .85; font-weight: 700; }
+    .count-label { color: var(--muted); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; margin-top: 10px; }
+    
+    .search-bar-container { padding: 18px 34px; background: #eaedf0; border-bottom: 1px solid var(--line); }
+    .search-bar { display: flex; gap: 14px; align-items: center; max-width: 900px; }
+    .search-bar label { font-family: 'Helvetica Neue', sans-serif; font-size: 13px; font-weight: 700; color: var(--ink); white-space: nowrap; }
+    .search-bar input { flex: 1; padding: 10px 14px; font-size: 15px; border: 1px solid var(--line); border-radius: 4px; background: #fff; }
+    .search-bar button { padding: 10px 18px; font-size: 13px; font-weight: 600; border: none; border-radius: 4px; background: var(--cyan); color: #fff; cursor: pointer; }
+    .search-bar button:hover { background: #00686e; }
+    .search-hint { font-size: 11px; color: var(--muted); font-family: 'Helvetica Neue', sans-serif; margin-top: 6px; }
+
+    .layout { width: 100%; padding: 28px 34px 80px; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 34px; }
+    .index { position: sticky; top: 18px; align-self: start; border-top: 3px solid var(--ink); padding-top: 13px; max-height: calc(100vh - 40px); overflow-y: auto; }
+    .index-title { font-family: 'Helvetica Neue', Helvetica, sans-serif; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
+    .index a { display: block; padding: 10px 0; border-bottom: 1px solid var(--line); text-decoration: none; font-size: 14px; }
+    .index a:hover { color: var(--cyan); }
+    .index a.hidden, .target.hidden { display: none !important; }
+    .index span { color: var(--coral); font-family: 'Helvetica Neue', Helvetica, sans-serif; font-size: 11px; margin-right: 8px; }
+    .index b { color: var(--muted); padding: 0 3px; }
+    .target { background: var(--panel); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-bottom: 34px; scroll-margin-top: 18px; }
+    .target-heading { padding: 20px 26px 16px; border-bottom: 1px solid var(--line); }
+    .eyebrow { color: var(--coral); font-size: 10px; font-weight: 700; margin-bottom: 8px; }
+    h2 { font-size: clamp(22px, 3vw, 34px); line-height: 1; font-weight: 500; margin-bottom: 0; }
+    h2 span { color: var(--cyan); }
+    h2 small { color: var(--yellow); font-size: .8em; padding: 0 5px; }
+    h2 a { text-decoration: none; }
+    h2 a:hover { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 5px; }
+    .venus-id { color: var(--ink); }
+    .relics-id { color: var(--cyan); }
+    .redshift-summary { display: grid; grid-template-columns: 1fr; margin: 0; border-bottom: 1px solid var(--line); }
+    .redshift-summary div { padding: 12px 16px; border-bottom: 1px solid var(--line); min-width: 0; }
+    .redshift-summary div:last-child { border-bottom: 0; }
+    .redshift-summary dd { font-size: 18px; white-space: normal; }
+    .redshift-summary dd span { color: var(--cyan); }
+    .redshift-summary dd em { display: inline; color: var(--muted); font-size: 10px; margin-left: 3px; }
+    .inline-fact { color: var(--muted); font: 11px 'Helvetica Neue', Helvetica, sans-serif; font-weight: 500; margin-left: 14px; white-space: nowrap; }
+    dt { color: var(--muted); font-size: 9px; font-weight: 700; margin-bottom: 6px; }
+    dd { margin: 0; font-family: 'Helvetica Neue', Helvetica, sans-serif; font-size: 16px; font-weight: 700; white-space: nowrap; }
+    dd em { display: block; color: var(--coral); font-size: 9px; font-style: normal; letter-spacing: .04em; text-transform: uppercase; margin-top: 3px; }
+    .coordinates { color: var(--muted); font-family: 'Helvetica Neue', Helvetica, sans-serif; font-size: 12px; letter-spacing: .01em; margin: 12px 0 0; }
+    .coordinates strong { color: var(--ink); font-size: 16px; font-weight: 700; }
+    .coordinates span { font-size: 10px; }
+    .coordinates b { color: var(--yellow); padding: 0 8px; }
+    .evidence-stack { padding: 20px 26px 24px; border-top: 1px solid var(--line); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 2fr); gap: 14px; }
+    .evidence { min-width: 0; padding: 0; }
+    .evidence-color { grid-column: 1; grid-row: 1 / span 2; }
+    .evidence-relics { grid-column: 2; grid-row: 1 / span 2; }
+    .relics-plots { display: grid; gap: 14px; }
+    .venus-evidence { grid-column: 3; grid-row: 1 / span 2; }
+    .evidence-label { display: flex; gap: 12px; align-items: start; margin-bottom: 13px; font-size: 11px; }
+    .evidence-label > span { color: var(--coral); font-size: 12px; font-weight: 700; }
+    .evidence-label strong { display: block; font-size: 11px; color: var(--ink); }
+    .evidence-label small { display: block; color: var(--muted); font: 12px Georgia, serif; letter-spacing: 0; text-transform: none; margin-top: 3px; }
+    .evidence img { display: block; max-width: 100%; height: auto; margin: auto; border: 1px solid #e0e3dd; background: #fff; }
+    .evidence-color img { width: 83.333%; }
+    .evidence-wide img { width: 100%; }
+    .venus-panel { display: block; width: 100%; height: auto; margin: auto; border: 1px solid #e0e3dd; background: #fff; }
+    .evidence a { display: block; }
+    .evidence .asset-link { color: var(--cyan); font: 10px 'Helvetica Neue', Helvetica, sans-serif; margin: 8px auto 0; text-decoration: none; }
+    .evidence .asset-link:hover { text-decoration: underline; }
+    .venus-evidence { background: #f7faf6; }
+    .asset-note { color: var(--muted); font: 12px/1.5 'Helvetica Neue', Helvetica, sans-serif; margin: 12px auto 0; max-width: 1100px; }
+    .footer { width: 100%; padding: 0 34px 34px; color: var(--muted); font: 12px/1.6 'Helvetica Neue', Helvetica, sans-serif; }
+    @media (max-width: 920px) {
+      .masthead-inner { display: block; padding: 26px 20px; }
+      .count-block { text-align: left; margin-top: 24px; }
+      .layout { display: block; padding: 20px 14px 50px; }
+      .index { position: static; margin-bottom: 20px; max-height: none; }
+      .index a { display: inline-block; margin-right: 12px; border-bottom: 0; }
+      .target-heading { display: block; padding: 18px 16px 14px; }
+      .coordinates { line-height: 1.5; }
+      .inline-fact { display: block; margin: 5px 0 0; }
+      .evidence-stack { grid-template-columns: minmax(145px, 1fr) minmax(145px, 1fr) minmax(290px, 2fr); overflow-x: auto; padding-left: 16px; padding-right: 16px; }
+      .footer { padding: 0 14px 30px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="masthead">
+    <div class="masthead-inner">
+      <div>
+        <p class="kicker">PG004 · evidence browser</p>
+        <h1>RELICS × VENUS<br>HST high-z matches</h1>
+        <p class="dek">Displaying 22 targets. <strong>6</strong> have RELICS BPZ <strong>z ≥ 6</strong>, including <strong>3</strong> with a conservative <strong>95% lower bound ≥ 4.5</strong>. HST color, RELICS BPZ evidence, and authenticated VENUS EAZY panels are shown side-by-side.</p>
+      </div>
+      <div class="count-block"><div class="count">22</div><div class="count-label">targets loaded<br>03 strict high-z agreements</div></div>
+    </div>
+  </header>
+  
+    <div class="search-bar-container">
+      <div class="search-bar">
+        <label for="id-search">🔍 Quick Filter / Lookup IDs:</label>
+        <input type="text" id="id-search" placeholder="Type VENUS or RELICS ID (e.g. 5545, 222, 1600)..." autocomplete="off">
+        <button id="clear-btn" type="button">Clear</button>
+      </div>
+      <div class="search-hint">Interactive client filter enabled · Matches instant typing or comma-separated lists</div>
+    </div>
+    
+  <main class="layout">
+    <nav class="index" aria-label="Matched target index">
+      <p class="index-title">Targets (<span id="visible-count">22</span>)</p>
+      <a href="#target-5545" data-jwst="5545" data-relics="222"><span>01</span>VENUS 5545 <b>↔</b> RELICS 222</a>
+<a href="#target-2901" data-jwst="2901" data-relics="1483"><span>02</span>VENUS 2901 <b>↔</b> RELICS 1483</a>
+<a href="#target-3598" data-jwst="3598" data-relics="1156"><span>03</span>VENUS 3598 <b>↔</b> RELICS 1156</a>
+<a href="#target-4306" data-jwst="4306" data-relics="744"><span>04</span>VENUS 4306 <b>↔</b> RELICS 744</a>
+<a href="#target-932" data-jwst="932" data-relics="2447"><span>05</span>VENUS 932 <b>↔</b> RELICS 2447</a>
+<a href="#target-1977" data-jwst="1977" data-relics="1904"><span>06</span>VENUS 1977 <b>↔</b> RELICS 1904</a>
+<a href="#target-1600" data-jwst="1600" data-relics="2057"><span>07</span>VENUS 1600 <b>↔</b> RELICS 2057</a>
+<a href="#target-2512" data-jwst="2512" data-relics="1709"><span>08</span>VENUS 2512 <b>↔</b> RELICS 1709</a>
+<a href="#target-4039" data-jwst="4039" data-relics="936"><span>09</span>VENUS 4039 <b>↔</b> RELICS 936</a>
+<a href="#target-1262" data-jwst="1262" data-relics="2248"><span>10</span>VENUS 1262 <b>↔</b> RELICS 2248</a>
+<a href="#target-5665" data-jwst="5665" data-relics="191"><span>11</span>VENUS 5665 <b>↔</b> RELICS 191</a>
+<a href="#target-1899" data-jwst="1899" data-relics="1933"><span>12</span>VENUS 1899 <b>↔</b> RELICS 1933</a>
+<a href="#target-4260" data-jwst="4260" data-relics="782"><span>13</span>VENUS 4260 <b>↔</b> RELICS 782</a>
+<a href="#target-3720" data-jwst="3720" data-relics="1094"><span>14</span>VENUS 3720 <b>↔</b> RELICS 1094</a>
+<a href="#target-781" data-jwst="781" data-relics="2416"><span>15</span>VENUS 781 <b>↔</b> RELICS 2416</a>
+<a href="#target-4006" data-jwst="4006" data-relics="952"><span>16</span>VENUS 4006 <b>↔</b> RELICS 952</a>
+<a href="#target-327" data-jwst="327" data-relics="2543"><span>17</span>VENUS 327 <b>↔</b> RELICS 2543</a>
+<a href="#target-1801" data-jwst="1801" data-relics="1983"><span>18</span>VENUS 1801 <b>↔</b> RELICS 1983</a>
+<a href="#target-4335" data-jwst="4335" data-relics="738"><span>19</span>VENUS 4335 <b>↔</b> RELICS 738</a>
+<a href="#target-5625" data-jwst="5625" data-relics="204"><span>20</span>VENUS 5625 <b>↔</b> RELICS 204</a>
+<a href="#target-1184" data-jwst="1184" data-relics="2268"><span>21</span>VENUS 1184 <b>↔</b> RELICS 2268</a>
+<a href="#target-4763" data-jwst="4763" data-relics="536"><span>22</span>VENUS 4763 <b>↔</b> RELICS 536</a>
+    </nav>
+    <section id="cards-container">
+      
+    <article class="target" id="target-5545" data-jwst="5545" data-relics="222">
+      <div class="target-heading">
+        <div>
+          <p class="eyebrow">Target 01 · matched HST source</p>
+          <h2><a class="venus-id" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/5545" target="_blank" rel="noreferrer">VENUS <span>5545</span></a> <small>↔</small> <a class="relics-id" href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/222.html" target="_blank" rel="noreferrer">RELICS <span>222</span></a></h2>
+          <p class="coordinates"><strong>RA 19:17:07.77</strong> <span>(289.282356°)</span><b>·</b><strong>Dec -33:30:29.52</strong> <span>(-33.508200°)</span></p>
+        </div>
+      </div>
+
+      <dl class="redshift-summary">
+        <div><dt>JWST VENUS</dt><dd>z = 6.122 <span>[5.913 – 6.254]</span> <em>(95%)</em></dd></div>
+        <div><dt>HST RELICS</dt><dd>z = 5.750 <span>[5.620 – 5.900]</span> <em>(95%)</em> <b class="inline-fact">stellarity 0.88 · match 0.033&Prime;</b></dd></div>
+      </dl>
+
+      <div class="evidence-stack">
+        <section class="evidence evidence-color">
+          <div class="evidence-label"><span>01</span><div><strong>RELICS HST color image</strong><small>ACS + IR color stamp · HST source 222</small></div></div>
+          <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp222.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp222.png" alt="RELICS HST ACS and infrared color image for source 222" loading="lazy"></a>
+        </section>
+        <section class="evidence evidence-relics">
+          <div class="evidence-label"><span>02–03</span><div><strong>RELICS BPZ SED + P(z)</strong><small>HST photometry, BPZ model, and redshift probability</small></div></div>
+          <div class="relics-plots">
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_222.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_222.png" alt="RELICS BPZ photometry SED for source 222" loading="lazy"></a>
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_222.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_222.png" alt="RELICS BPZ redshift probability plot for source 222" loading="lazy"></a>
+          </div>
+        </section>
+        <section class="evidence evidence-wide venus-evidence">
+          <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 5545 · direct EAZY SED and posterior</small></div></div>
+          <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/5545.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_5545.png" alt="VENUS EAZY SED and redshift probability plot for source 5545" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/5545.png?version=v0.2';"></a>
+          <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/5545" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
+          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+        </section>
+      </div>
+    </article>
+    
+
+    <article class="target" id="target-2901" data-jwst="2901" data-relics="1483">
+      <div class="target-heading">
+        <div>
+          <p class="eyebrow">Target 02 · matched HST source</p>
+          <h2><a class="venus-id" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/2901" target="_blank" rel="noreferrer">VENUS <span>2901</span></a> <small>↔</small> <a class="relics-id" href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/1483.html" target="_blank" rel="noreferrer">RELICS <span>1483</span></a></h2>
+          <p class="coordinates"><strong>RA 19:17:08.97</strong> <span>(289.287358°)</span><b>·</b><strong>Dec -33:31:28.76</strong> <span>(-33.524657°)</span></p>
+        </div>
+      </div>
+
+      <dl class="redshift-summary">
+        <div><dt>JWST VENUS</dt><dd>z = 6.248 <span>[6.138 – 6.356]</span> <em>(95%)</em></dd></div>
+        <div><dt>HST RELICS</dt><dd>z = 5.670 <span>[5.350 – 5.780]</span> <em>(95%)</em> <b class="inline-fact">stellarity 0.95 · match 0.086&Prime;</b></dd></div>
+      </dl>
+
+      <div class="evidence-stack">
+        <section class="evidence evidence-color">
+          <div class="evidence-label"><span>01</span><div><strong>RELICS HST color image</strong><small>ACS + IR color stamp · HST source 1483</small></div></div>
+          <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp1483.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp1483.png" alt="RELICS HST ACS and infrared color image for source 1483" loading="lazy"></a>
+        </section>
+        <section class="evidence evidence-relics">
+          <div class="evidence-label"><span>02–03</span><div><strong>RELICS BPZ SED + P(z)</strong><small>HST photometry, BPZ model, and redshift probability</small></div></div>
+          <div class="relics-plots">
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_1483.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_1483.png" alt="RELICS BPZ photometry SED for source 1483" loading="lazy"></a>
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_1483.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_1483.png" alt="RELICS BPZ redshift probability plot for source 1483" loading="lazy"></a>
+          </div>
+        </section>
+        <section class="evidence evidence-wide venus-evidence">
+          <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 2901 · direct EAZY SED and posterior</small></div></div>
+          <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/2901.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_2901.png" alt="VENUS EAZY SED and redshift probability plot for source 2901" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/2901.png?version=v0.2';"></a>
+          <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/2901" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
+          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+        </section>
+      </div>
+    </article>
+    
+
+    <article class="target" id="target-3598" data-jwst="3598" data-relics="1156">
+      <div class="target-heading">
+        <div>
+          <p class="eyebrow">Target 03 · RELICS BPZ high-z match</p>
+          <h2><a class="venus-id" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/3598" target="_blank" rel="noreferrer">VENUS <span>3598</span></a> <small>↔</small> <a class="relics-id" href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/1156.html" target="_blank" rel="noreferrer">RELICS <span>1156</span></a></h2>
+          <p class="coordinates"><strong>RA 19:17:05.43</strong> <span>(289.272607°)</span><b>·</b><strong>Dec -33:31:15.46</strong> <span>(-33.520962°)</span></p>
+        </div>
+      </div>
+
+      <dl class="redshift-summary">
+        <div><dt>JWST VENUS</dt><dd>z = 7.725 <span>[7.006 – 8.366]</span> <em>(95%)</em></dd></div>
+        <div><dt>HST RELICS</dt><dd>z = 6.710 <span>[1.090 – 7.600]</span> <em>(95%)</em> <b class="inline-fact">stellarity 0.00 · match 0.064&Prime;</b></dd></div>
+      </dl>
+
+      <div class="evidence-stack">
+        <section class="evidence evidence-color">
+          <div class="evidence-label"><span>01</span><div><strong>RELICS HST color image</strong><small>ACS + IR color stamp · HST source 1156</small></div></div>
+          <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp1156.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp1156.png" alt="RELICS HST ACS and infrared color image for source 1156" loading="lazy"></a>
+        </section>
+        <section class="evidence evidence-relics">
+          <div class="evidence-label"><span>02–03</span><div><strong>RELICS BPZ SED + P(z)</strong><small>HST photometry, BPZ model, and redshift probability</small></div></div>
+          <div class="relics-plots">
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_1156.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_1156.png" alt="RELICS BPZ photometry SED for source 1156" loading="lazy"></a>
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_1156.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_1156.png" alt="RELICS BPZ redshift probability plot for source 1156" loading="lazy"></a>
+          </div>
+        </section>
+        <section class="evidence evidence-wide venus-evidence">
+          <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 3598 · direct EAZY SED and posterior</small></div></div>
+          <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/3598.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_3598.png" alt="VENUS EAZY SED and redshift probability plot for source 3598" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/3598.png?version=v0.2';"></a>
+          <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/3598" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
+          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+        </section>
+      </div>
+    </article>
+    
+
+    <article class="target" id="target-4306" data-jwst="4306" data-relics="744">
+      <div class="target-heading">
+        <div>
+          <p class="eyebrow">Target 04 · matched HST source</p>
+          <h2><a class="venus-id" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/4306" target="_blank" rel="noreferrer">VENUS <span>4306</span></a> <small>↔</small> <a class="relics-id" href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/744.html" target="_blank" rel="noreferrer">RELICS <span>744</span></a></h2>
+          <p class="coordinates"><strong>RA 19:17:01.05</strong> <span>(289.254395°)</span><b>·</b><strong>Dec -33:31:01.15</strong> <span>(-33.516987°)</span></p>
+        </div>
+      </div>
+
+      <dl class="redshift-summary">
+        <div><dt>JWST VENUS</dt><dd>z = -1.000 <span>[0.000 – 0.000]</span> <em>(95%)</em></dd></div>
+        <div><dt>HST RELICS</dt><dd>z = 5.510 <span>[5.220 – 5.810]</span> <em>(95%)</em> <b class="inline-fact">stellarity 0.15 · match 0.012&Prime;</b></dd></div>
+      </dl>
+
+      <div class="evidence-stack">
+        <section class="evidence evidence-color">
+          <div class="evidence-label"><span>01</span><div><strong>RELICS HST color image</strong><small>ACS + IR color stamp · HST source 744</small></div></div>
+          <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp744.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp744.png" alt="RELICS HST ACS and infrared color image for source 744" loading="lazy"></a>
+        </section>
+        <section class="evidence evidence-relics">
+          <div class="evidence-label"><span>02–03</span><div><strong>RELICS BPZ SED + P(z)</strong><small>HST photometry, BPZ model, and redshift probability</small></div></div>
+          <div class="relics-plots">
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_744.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_744.png" alt="RELICS BPZ photometry SED for source 744" loading="lazy"></a>
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_744.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_744.png" alt="RELICS BPZ redshift probability plot for source 744" loading="lazy"></a>
+          </div>
+        </section>
+        <section class="evidence evidence-wide venus-evidence">
+          <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 4306 · direct EAZY SED and posterior</small></div></div>
+          <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/4306.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_4306.png" alt="VENUS EAZY SED and redshift probability plot for source 4306" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/4306.png?version=v0.2';"></a>
+          <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/4306" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
+          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+        </section>
+      </div>
+    </article>
+    
+
+    <article class="target" id="target-932" data-jwst="932" data-relics="2447">
+      <div class="target-heading">
+        <div>
+          <p class="eyebrow">Target 05 · matched HST source</p>
+          <h2><a class="venus-id" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/932" target="_blank" rel="noreferrer">VENUS <span>932</span></a> <small>↔</small> <a class="relics-id" href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/2447.html" target="_blank" rel="noreferrer">RELICS <span>2447</span></a></h2>
+          <p class="coordinates"><strong>RA 19:17:04.09</strong> <span>(289.267059°)</span><b>·</b><strong>Dec -33:32:08.61</strong> <span>(-33.535726°)</span></p>
+        </div>
+      </div>
+
+      <dl class="redshift-summary">
+        <div><dt>JWST VENUS</dt><dd>z = 6.436 <span>[6.178 – 6.578]</span> <em>(95%)</em></dd></div>
+        <div><dt>HST RELICS</dt><dd>z = 5.580 <span>[5.240 – 5.910]</span> <em>(95%)</em> <b class="inline-fact">stellarity 0.87 · match 0.018&Prime;</b></dd></div>
+      </dl>
+
+      <div class="evidence-stack">
+        <section class="evidence evidence-color">
+          <div class="evidence-label"><span>01</span><div><strong>RELICS HST color image</strong><small>ACS + IR color stamp · HST source 2447</small></div></div>
+          <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp2447.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp2447.png" alt="RELICS HST ACS and infrared color image for source 2447" loading="lazy"></a>
+        </section>
+        <section class="evidence evidence-relics">
+          <div class="evidence-label"><span>02–03</span><div><strong>RELICS BPZ SED + P(z)</strong><small>HST photometry, BPZ model, and redshift probability</small></div></div>
+          <div class="relics-plots">
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_2447.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_2447.png" alt="RELICS BPZ photometry SED for source 2447" loading="lazy"></a>
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_2447.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_2447.png" alt="RELICS BPZ redshift probability plot for source 2447" loading="lazy"></a>
+          </div>
+        </section>
+        <section class="evidence evidence-wide venus-evidence">
+          <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 932 · direct EAZY SED and posterior</small></div></div>
+          <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/932.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_932.png" alt="VENUS EAZY SED and redshift probability plot for source 932" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/932.png?version=v0.2';"></a>
+          <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/932" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
+          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+        </section>
+      </div>
+    </article>
+    
+
+    <article class="target" id="target-1977" data-jwst="1977" data-relics="1904">
+      <div class="target-heading">
+        <div>
+          <p class="eyebrow">Target 06 · matched HST source</p>
+          <h2><a class="venus-id" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/1977" target="_blank" rel="noreferrer">VENUS <span>1977</span></a> <small>↔</small> <a class="relics-id" href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/1904.html" target="_blank" rel="noreferrer">RELICS <span>1904</span></a></h2>
+          <p class="coordinates"><strong>RA 19:17:03.61</strong> <span>(289.265033°)</span><b>·</b><strong>Dec -33:31:46.01</strong> <span>(-33.529448°)</span></p>
+        </div>
+      </div>
+
+      <dl class="redshift-summary">
+        <div><dt>JWST VENUS</dt><dd>z = 6.230 <span>[6.048 – 6.413]</span> <em>(95%)</em></dd></div>
+        <div><dt>HST RELICS</dt><dd>z = 5.810 <span>[5.340 – 5.970]</span> <em>(95%)</em> <b class="inline-fact">stellarity 0.97 · match 0.011&Prime;</b></dd></div>
+      </dl>
+
+      <div class="evidence-stack">
+        <section class="evidence evidence-color">
+          <div class="evidence-label"><span>01</span><div><strong>RELICS HST color image</strong><small>ACS + IR color stamp · HST source 1904</small></div></div>
+          <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp1904.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp1904.png" alt="RELICS HST ACS and infrared color image for source 1904" loading="lazy"></a>
+        </section>
+        <section class="evidence evidence-relics">
+          <div class="evidence-label"><span>02–03</span><div><strong>RELICS BPZ SED + P(z)</strong><small>HST photometry, BPZ model, and redshift probability</small></div></div>
+          <div class="relics-plots">
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_1904.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_1904.png" alt="RELICS BPZ photometry SED for source 1904" loading="lazy"></a>
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_1904.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_1904.png" alt="RELICS BPZ redshift probability plot for source 1904" loading="lazy"></a>
+          </div>
+        </section>
+        <section class="evidence evidence-wide venus-evidence">
+          <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 1977 · direct EAZY SED and posterior</small></div></div>
+          <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/1977.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_1977.png" alt="VENUS EAZY SED and redshift probability plot for source 1977" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/1977.png?version=v0.2';"></a>
+          <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/1977" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
+          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+        </section>
+      </div>
+    </article>
+    
+
+    <article class="target" id="target-1600" data-jwst="1600" data-relics="2057">
+      <div class="target-heading">
+        <div>
+          <p class="eyebrow">Target 07 · strict HST high-z agreement</p>
+          <h2><a class="venus-id" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/1600" target="_blank" rel="noreferrer">VENUS <span>1600</span></a> <small>↔</small> <a class="relics-id" href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/2057.html" target="_blank" rel="noreferrer">RELICS <span>2057</span></a></h2>
+          <p class="coordinates"><strong>RA 19:17:02.75</strong> <span>(289.261461°)</span><b>·</b><strong>Dec -33:31:53.86</strong> <span>(-33.531628°)</span></p>
+        </div>
+      </div>
+
+      <dl class="redshift-summary">
+        <div><dt>JWST VENUS</dt><dd>z = 6.578 <span>[6.419 – 6.735]</span> <em>(95%)</em></dd></div>
+        <div><dt>HST RELICS</dt><dd>z = 6.050 <span>[5.570 – 6.360]</span> <em>(95%)</em> <b class="inline-fact">stellarity 0.95 · match 0.004&Prime;</b></dd></div>
+      </dl>
+
+      <div class="evidence-stack">
+        <section class="evidence evidence-color">
+          <div class="evidence-label"><span>01</span><div><strong>RELICS HST color image</strong><small>ACS + IR color stamp · HST source 2057</small></div></div>
+          <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp2057.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp2057.png" alt="RELICS HST ACS and infrared color image for source 2057" loading="lazy"></a>
+        </section>
+        <section class="evidence evidence-relics">
+          <div class="evidence-label"><span>02–03</span><div><strong>RELICS BPZ SED + P(z)</strong><small>HST photometry, BPZ model, and redshift probability</small></div></div>
+          <div class="relics-plots">
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_2057.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_2057.png" alt="RELICS BPZ photometry SED for source 2057" loading="lazy"></a>
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_2057.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_2057.png" alt="RELICS BPZ redshift probability plot for source 2057" loading="lazy"></a>
+          </div>
+        </section>
+        <section class="evidence evidence-wide venus-evidence">
+          <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 1600 · direct EAZY SED and posterior</small></div></div>
+          <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/1600.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_1600.png" alt="VENUS EAZY SED and redshift probability plot for source 1600" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/1600.png?version=v0.2';"></a>
+          <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/1600" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
+          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+        </section>
+      </div>
+    </article>
+    
+
+    <article class="target" id="target-2512" data-jwst="2512" data-relics="1709">
+      <div class="target-heading">
+        <div>
+          <p class="eyebrow">Target 08 · RELICS BPZ high-z match</p>
+          <h2><a class="venus-id" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/2512" target="_blank" rel="noreferrer">VENUS <span>2512</span></a> <small>↔</small> <a class="relics-id" href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/1709.html" target="_blank" rel="noreferrer">RELICS <span>1709</span></a></h2>
+          <p class="coordinates"><strong>RA 19:17:02.67</strong> <span>(289.261134°)</span><b>·</b><strong>Dec -33:31:35.40</strong> <span>(-33.526499°)</span></p>
+        </div>
+      </div>
+
+      <dl class="redshift-summary">
+        <div><dt>JWST VENUS</dt><dd>z = 6.773 <span>[6.661 – 6.859]</span> <em>(95%)</em></dd></div>
+        <div><dt>HST RELICS</dt><dd>z = 6.050 <span>[0.850 – 6.470]</span> <em>(95%)</em> <b class="inline-fact">stellarity 0.97 · match 0.049&Prime;</b></dd></div>
+      </dl>
+
+      <div class="evidence-stack">
+        <section class="evidence evidence-color">
+          <div class="evidence-label"><span>01</span><div><strong>RELICS HST color image</strong><small>ACS + IR color stamp · HST source 1709</small></div></div>
+          <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp1709.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp1709.png" alt="RELICS HST ACS and infrared color image for source 1709" loading="lazy"></a>
+        </section>
+        <section class="evidence evidence-relics">
+          <div class="evidence-label"><span>02–03</span><div><strong>RELICS BPZ SED + P(z)</strong><small>HST photometry, BPZ model, and redshift probability</small></div></div>
+          <div class="relics-plots">
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_1709.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_1709.png" alt="RELICS BPZ photometry SED for source 1709" loading="lazy"></a>
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_1709.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_1709.png" alt="RELICS BPZ redshift probability plot for source 1709" loading="lazy"></a>
+          </div>
+        </section>
+        <section class="evidence evidence-wide venus-evidence">
+          <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 2512 · direct EAZY SED and posterior</small></div></div>
+          <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/2512.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_2512.png" alt="VENUS EAZY SED and redshift probability plot for source 2512" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/2512.png?version=v0.2';"></a>
+          <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/2512" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
+          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+        </section>
+      </div>
+    </article>
+    
+
+    <article class="target" id="target-4039" data-jwst="4039" data-relics="936">
+      <div class="target-heading">
+        <div>
+          <p class="eyebrow">Target 09 · strict HST high-z agreement</p>
+          <h2><a class="venus-id" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/4039" target="_blank" rel="noreferrer">VENUS <span>4039</span></a> <small>↔</small> <a class="relics-id" href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/936.html" target="_blank" rel="noreferrer">RELICS <span>936</span></a></h2>
+          <p class="coordinates"><strong>RA 19:16:59.82</strong> <span>(289.249235°)</span><b>·</b><strong>Dec -33:31:06.88</strong> <span>(-33.518578°)</span></p>
+        </div>
+      </div>
+
+      <dl class="redshift-summary">
+        <div><dt>JWST VENUS</dt><dd>z = 6.800 <span>[6.730 – 6.890]</span> <em>(95%)</em></dd></div>
+        <div><dt>HST RELICS</dt><dd>z = 6.330 <span>[5.960 – 6.730]</span> <em>(95%)</em> <b class="inline-fact">stellarity 0.96 · match 0.037&Prime;</b></dd></div>
+      </dl>
+
+      <div class="evidence-stack">
+        <section class="evidence evidence-color">
+          <div class="evidence-label"><span>01</span><div><strong>RELICS HST color image</strong><small>ACS + IR color stamp · HST source 936</small></div></div>
+          <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp936.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp936.png" alt="RELICS HST ACS and infrared color image for source 936" loading="lazy"></a>
+        </section>
+        <section class="evidence evidence-relics">
+          <div class="evidence-label"><span>02–03</span><div><strong>RELICS BPZ SED + P(z)</strong><small>HST photometry, BPZ model, and redshift probability</small></div></div>
+          <div class="relics-plots">
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_936.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_936.png" alt="RELICS BPZ photometry SED for source 936" loading="lazy"></a>
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_936.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_936.png" alt="RELICS BPZ redshift probability plot for source 936" loading="lazy"></a>
+          </div>
+        </section>
+        <section class="evidence evidence-wide venus-evidence">
+          <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 4039 · direct EAZY SED and posterior</small></div></div>
+          <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/4039.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_4039.png" alt="VENUS EAZY SED and redshift probability plot for source 4039" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/4039.png?version=v0.2';"></a>
+          <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/4039" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
+          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+        </section>
+      </div>
+    </article>
+    
+
+    <article class="target" id="target-1262" data-jwst="1262" data-relics="2248">
+      <div class="target-heading">
+        <div>
+          <p class="eyebrow">Target 10 · matched HST source</p>
+          <h2><a class="venus-id" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/1262" target="_blank" rel="noreferrer">VENUS <span>1262</span></a> <small>↔</small> <a class="relics-id" href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/2248.html" target="_blank" rel="noreferrer">RELICS <span>2248</span></a></h2>
+          <p class="coordinates"><strong>RA 19:17:04.21</strong> <span>(289.267538°)</span><b>·</b><strong>Dec -33:32:01.21</strong> <span>(-33.533670°)</span></p>
+        </div>
+      </div>
+
+      <dl class="redshift-summary">
+        <div><dt>JWST VENUS</dt><dd>z = 6.201 <span>[6.002 – 6.395]</span> <em>(95%)</em></dd></div>
+        <div><dt>HST RELICS</dt><dd>z = 5.480 <span>[0.760 – 5.930]</span> <em>(95%)</em> <b class="inline-fact">stellarity 0.95 · match 0.025&Prime;</b></dd></div>
+      </dl>
+
+      <div class="evidence-stack">
+        <section class="evidence evidence-color">
+          <div class="evidence-label"><span>01</span><div><strong>RELICS HST color image</strong><small>ACS + IR color stamp · HST source 2248</small></div></div>
+          <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp2248.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp2248.png" alt="RELICS HST ACS and infrared color image for source 2248" loading="lazy"></a>
+        </section>
+        <section class="evidence evidence-relics">
+          <div class="evidence-label"><span>02–03</span><div><strong>RELICS BPZ SED + P(z)</strong><small>HST photometry, BPZ model, and redshift probability</small></div></div>
+          <div class="relics-plots">
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_2248.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_2248.png" alt="RELICS BPZ photometry SED for source 2248" loading="lazy"></a>
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_2248.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_2248.png" alt="RELICS BPZ redshift probability plot for source 2248" loading="lazy"></a>
+          </div>
+        </section>
+        <section class="evidence evidence-wide venus-evidence">
+          <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 1262 · direct EAZY SED and posterior</small></div></div>
+          <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/1262.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_1262.png" alt="VENUS EAZY SED and redshift probability plot for source 1262" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/1262.png?version=v0.2';"></a>
+          <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/1262" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
+          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+        </section>
+      </div>
+    </article>
+    
+
+    <article class="target" id="target-5665" data-jwst="5665" data-relics="191">
+      <div class="target-heading">
+        <div>
+          <p class="eyebrow">Target 11 · matched HST source</p>
+          <h2><a class="venus-id" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/5665" target="_blank" rel="noreferrer">VENUS <span>5665</span></a> <small>↔</small> <a class="relics-id" href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/191.html" target="_blank" rel="noreferrer">RELICS <span>191</span></a></h2>
+          <p class="coordinates"><strong>RA 19:17:02.83</strong> <span>(289.261802°)</span><b>·</b><strong>Dec -33:30:26.83</strong> <span>(-33.507453°)</span></p>
+        </div>
+      </div>
+
+      <dl class="redshift-summary">
+        <div><dt>JWST VENUS</dt><dd>z = -1.000 <span>[0.000 – 0.000]</span> <em>(95%)</em></dd></div>
+        <div><dt>HST RELICS</dt><dd>z = 5.510 <span>[4.370 – 5.730]</span> <em>(95%)</em> <b class="inline-fact">stellarity 0.90 · match 0.012&Prime;</b></dd></div>
+      </dl>
+
+      <div class="evidence-stack">
+        <section class="evidence evidence-color">
+          <div class="evidence-label"><span>01</span><div><strong>RELICS HST color image</strong><small>ACS + IR color stamp · HST source 191</small></div></div>
+          <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp191.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp191.png" alt="RELICS HST ACS and infrared color image for source 191" loading="lazy"></a>
+        </section>
+        <section class="evidence evidence-relics">
+          <div class="evidence-label"><span>02–03</span><div><strong>RELICS BPZ SED + P(z)</strong><small>HST photometry, BPZ model, and redshift probability</small></div></div>
+          <div class="relics-plots">
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_191.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_191.png" alt="RELICS BPZ photometry SED for source 191" loading="lazy"></a>
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_191.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_191.png" alt="RELICS BPZ redshift probability plot for source 191" loading="lazy"></a>
+          </div>
+        </section>
+        <section class="evidence evidence-wide venus-evidence">
+          <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 5665 · direct EAZY SED and posterior</small></div></div>
+          <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/5665.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_5665.png" alt="VENUS EAZY SED and redshift probability plot for source 5665" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/5665.png?version=v0.2';"></a>
+          <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/5665" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
+          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+        </section>
+      </div>
+    </article>
+    
+
+    <article class="target" id="target-1899" data-jwst="1899" data-relics="1933">
+      <div class="target-heading">
+        <div>
+          <p class="eyebrow">Target 12 · matched HST source</p>
+          <h2><a class="venus-id" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/1899" target="_blank" rel="noreferrer">VENUS <span>1899</span></a> <small>↔</small> <a class="relics-id" href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/1933.html" target="_blank" rel="noreferrer">RELICS <span>1933</span></a></h2>
+          <p class="coordinates"><strong>RA 19:17:00.38</strong> <span>(289.251579°)</span><b>·</b><strong>Dec -33:31:46.73</strong> <span>(-33.529646°)</span></p>
+        </div>
+      </div>
+
+      <dl class="redshift-summary">
+        <div><dt>JWST VENUS</dt><dd>z = 6.193 <span>[6.008 – 6.365]</span> <em>(95%)</em></dd></div>
+        <div><dt>HST RELICS</dt><dd>z = 5.430 <span>[4.980 – 5.900]</span> <em>(95%)</em> <b class="inline-fact">stellarity 0.87 · match 0.057&Prime;</b></dd></div>
+      </dl>
+
+      <div class="evidence-stack">
+        <section class="evidence evidence-color">
+          <div class="evidence-label"><span>01</span><div><strong>RELICS HST color image</strong><small>ACS + IR color stamp · HST source 1933</small></div></div>
+          <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp1933.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp1933.png" alt="RELICS HST ACS and infrared color image for source 1933" loading="lazy"></a>
+        </section>
+        <section class="evidence evidence-relics">
+          <div class="evidence-label"><span>02–03</span><div><strong>RELICS BPZ SED + P(z)</strong><small>HST photometry, BPZ model, and redshift probability</small></div></div>
+          <div class="relics-plots">
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_1933.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_1933.png" alt="RELICS BPZ photometry SED for source 1933" loading="lazy"></a>
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_1933.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_1933.png" alt="RELICS BPZ redshift probability plot for source 1933" loading="lazy"></a>
+          </div>
+        </section>
+        <section class="evidence evidence-wide venus-evidence">
+          <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 1899 · direct EAZY SED and posterior</small></div></div>
+          <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/1899.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_1899.png" alt="VENUS EAZY SED and redshift probability plot for source 1899" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/1899.png?version=v0.2';"></a>
+          <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/1899" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
+          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+        </section>
+      </div>
+    </article>
+    
+
+    <article class="target" id="target-4260" data-jwst="4260" data-relics="782">
+      <div class="target-heading">
+        <div>
+          <p class="eyebrow">Target 13 · matched HST source</p>
+          <h2><a class="venus-id" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/4260" target="_blank" rel="noreferrer">VENUS <span>4260</span></a> <small>↔</small> <a class="relics-id" href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/782.html" target="_blank" rel="noreferrer">RELICS <span>782</span></a></h2>
+          <p class="coordinates"><strong>RA 19:17:01.40</strong> <span>(289.255828°)</span><b>·</b><strong>Dec -33:31:01.58</strong> <span>(-33.517105°)</span></p>
+        </div>
+      </div>
+
+      <dl class="redshift-summary">
+        <div><dt>JWST VENUS</dt><dd>z = 0.347 <span>[0.269 – 0.450]</span> <em>(95%)</em></dd></div>
+        <div><dt>HST RELICS</dt><dd>z = 5.640 <span>[0.850 – 5.910]</span> <em>(95%)</em> <b class="inline-fact">stellarity 0.00 · match 0.035&Prime;</b></dd></div>
+      </dl>
+
+      <div class="evidence-stack">
+        <section class="evidence evidence-color">
+          <div class="evidence-label"><span>01</span><div><strong>RELICS HST color image</strong><small>ACS + IR color stamp · HST source 782</small></div></div>
+          <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp782.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp782.png" alt="RELICS HST ACS and infrared color image for source 782" loading="lazy"></a>
+        </section>
+        <section class="evidence evidence-relics">
+          <div class="evidence-label"><span>02–03</span><div><strong>RELICS BPZ SED + P(z)</strong><small>HST photometry, BPZ model, and redshift probability</small></div></div>
+          <div class="relics-plots">
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_782.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_782.png" alt="RELICS BPZ photometry SED for source 782" loading="lazy"></a>
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_782.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_782.png" alt="RELICS BPZ redshift probability plot for source 782" loading="lazy"></a>
+          </div>
+        </section>
+        <section class="evidence evidence-wide venus-evidence">
+          <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 4260 · direct EAZY SED and posterior</small></div></div>
+          <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/4260.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_4260.png" alt="VENUS EAZY SED and redshift probability plot for source 4260" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/4260.png?version=v0.2';"></a>
+          <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/4260" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
+          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+        </section>
+      </div>
+    </article>
+    
+
+    <article class="target" id="target-3720" data-jwst="3720" data-relics="1094">
+      <div class="target-heading">
+        <div>
+          <p class="eyebrow">Target 14 · matched HST source</p>
+          <h2><a class="venus-id" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/3720" target="_blank" rel="noreferrer">VENUS <span>3720</span></a> <small>↔</small> <a class="relics-id" href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/1094.html" target="_blank" rel="noreferrer">RELICS <span>1094</span></a></h2>
+          <p class="coordinates"><strong>RA 19:17:04.59</strong> <span>(289.269128°)</span><b>·</b><strong>Dec -33:31:12.65</strong> <span>(-33.520181°)</span></p>
+        </div>
+      </div>
+
+      <dl class="redshift-summary">
+        <div><dt>JWST VENUS</dt><dd>z = -1.000 <span>[0.000 – 0.000]</span> <em>(95%)</em></dd></div>
+        <div><dt>HST RELICS</dt><dd>z = 5.470 <span>[4.610 – 5.870]</span> <em>(95%)</em> <b class="inline-fact">stellarity 0.85 · match 0.013&Prime;</b></dd></div>
+      </dl>
+
+      <div class="evidence-stack">
+        <section class="evidence evidence-color">
+          <div class="evidence-label"><span>01</span><div><strong>RELICS HST color image</strong><small>ACS + IR color stamp · HST source 1094</small></div></div>
+          <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp1094.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp1094.png" alt="RELICS HST ACS and infrared color image for source 1094" loading="lazy"></a>
+        </section>
+        <section class="evidence evidence-relics">
+          <div class="evidence-label"><span>02–03</span><div><strong>RELICS BPZ SED + P(z)</strong><small>HST photometry, BPZ model, and redshift probability</small></div></div>
+          <div class="relics-plots">
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_1094.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_1094.png" alt="RELICS BPZ photometry SED for source 1094" loading="lazy"></a>
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_1094.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_1094.png" alt="RELICS BPZ redshift probability plot for source 1094" loading="lazy"></a>
+          </div>
+        </section>
+        <section class="evidence evidence-wide venus-evidence">
+          <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 3720 · direct EAZY SED and posterior</small></div></div>
+          <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/3720.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_3720.png" alt="VENUS EAZY SED and redshift probability plot for source 3720" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/3720.png?version=v0.2';"></a>
+          <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/3720" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
+          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+        </section>
+      </div>
+    </article>
+    
+
+    <article class="target" id="target-781" data-jwst="781" data-relics="2416">
+      <div class="target-heading">
+        <div>
+          <p class="eyebrow">Target 15 · matched HST source</p>
+          <h2><a class="venus-id" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/781" target="_blank" rel="noreferrer">VENUS <span>781</span></a> <small>↔</small> <a class="relics-id" href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/2416.html" target="_blank" rel="noreferrer">RELICS <span>2416</span></a></h2>
+          <p class="coordinates"><strong>RA 19:17:01.46</strong> <span>(289.256083°)</span><b>·</b><strong>Dec -33:32:11.59</strong> <span>(-33.536552°)</span></p>
+        </div>
+      </div>
+
+      <dl class="redshift-summary">
+        <div><dt>JWST VENUS</dt><dd>z = 6.666 <span>[6.474 – 6.793]</span> <em>(95%)</em></dd></div>
+        <div><dt>HST RELICS</dt><dd>z = 1.040 <span>[0.630 – 6.410]</span> <em>(95%)</em> <b class="inline-fact">stellarity 0.85 · match 0.040&Prime;</b></dd></div>
+      </dl>
+
+      <div class="evidence-stack">
+        <section class="evidence evidence-color">
+          <div class="evidence-label"><span>01</span><div><strong>RELICS HST color image</strong><small>ACS + IR color stamp · HST source 2416</small></div></div>
+          <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp2416.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp2416.png" alt="RELICS HST ACS and infrared color image for source 2416" loading="lazy"></a>
+        </section>
+        <section class="evidence evidence-relics">
+          <div class="evidence-label"><span>02–03</span><div><strong>RELICS BPZ SED + P(z)</strong><small>HST photometry, BPZ model, and redshift probability</small></div></div>
+          <div class="relics-plots">
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_2416.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_2416.png" alt="RELICS BPZ photometry SED for source 2416" loading="lazy"></a>
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_2416.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_2416.png" alt="RELICS BPZ redshift probability plot for source 2416" loading="lazy"></a>
+          </div>
+        </section>
+        <section class="evidence evidence-wide venus-evidence">
+          <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 781 · direct EAZY SED and posterior</small></div></div>
+          <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/781.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_781.png" alt="VENUS EAZY SED and redshift probability plot for source 781" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/781.png?version=v0.2';"></a>
+          <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/781" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
+          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+        </section>
+      </div>
+    </article>
+    
+
+    <article class="target" id="target-4006" data-jwst="4006" data-relics="952">
+      <div class="target-heading">
+        <div>
+          <p class="eyebrow">Target 16 · matched HST source</p>
+          <h2><a class="venus-id" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/4006" target="_blank" rel="noreferrer">VENUS <span>4006</span></a> <small>↔</small> <a class="relics-id" href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/952.html" target="_blank" rel="noreferrer">RELICS <span>952</span></a></h2>
+          <p class="coordinates"><strong>RA 19:17:09.01</strong> <span>(289.287556°)</span><b>·</b><strong>Dec -33:31:07.38</strong> <span>(-33.518716°)</span></p>
+        </div>
+      </div>
+
+      <dl class="redshift-summary">
+        <div><dt>JWST VENUS</dt><dd>z = -1.000 <span>[0.000 – 0.000]</span> <em>(95%)</em></dd></div>
+        <div><dt>HST RELICS</dt><dd>z = 5.910 <span>[5.180 – 6.280]</span> <em>(95%)</em> <b class="inline-fact">stellarity 0.76 · match 0.012&Prime;</b></dd></div>
+      </dl>
+
+      <div class="evidence-stack">
+        <section class="evidence evidence-color">
+          <div class="evidence-label"><span>01</span><div><strong>RELICS HST color image</strong><small>ACS + IR color stamp · HST source 952</small></div></div>
+          <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp952.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp952.png" alt="RELICS HST ACS and infrared color image for source 952" loading="lazy"></a>
+        </section>
+        <section class="evidence evidence-relics">
+          <div class="evidence-label"><span>02–03</span><div><strong>RELICS BPZ SED + P(z)</strong><small>HST photometry, BPZ model, and redshift probability</small></div></div>
+          <div class="relics-plots">
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_952.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_952.png" alt="RELICS BPZ photometry SED for source 952" loading="lazy"></a>
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_952.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_952.png" alt="RELICS BPZ redshift probability plot for source 952" loading="lazy"></a>
+          </div>
+        </section>
+        <section class="evidence evidence-wide venus-evidence">
+          <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 4006 · direct EAZY SED and posterior</small></div></div>
+          <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/4006.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_4006.png" alt="VENUS EAZY SED and redshift probability plot for source 4006" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/4006.png?version=v0.2';"></a>
+          <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/4006" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
+          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+        </section>
+      </div>
+    </article>
+    
+
+    <article class="target" id="target-327" data-jwst="327" data-relics="2543">
+      <div class="target-heading">
+        <div>
+          <p class="eyebrow">Target 17 · RELICS BPZ high-z match</p>
+          <h2><a class="venus-id" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/327" target="_blank" rel="noreferrer">VENUS <span>327</span></a> <small>↔</small> <a class="relics-id" href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/2543.html" target="_blank" rel="noreferrer">RELICS <span>2543</span></a></h2>
+          <p class="coordinates"><strong>RA 19:17:03.58</strong> <span>(289.264916°)</span><b>·</b><strong>Dec -33:32:22.97</strong> <span>(-33.539714°)</span></p>
+        </div>
+      </div>
+
+      <dl class="redshift-summary">
+        <div><dt>JWST VENUS</dt><dd>z = 6.592 <span>[6.412 – 6.749]</span> <em>(95%)</em></dd></div>
+        <div><dt>HST RELICS</dt><dd>z = 6.170 <span>[0.940 – 6.910]</span> <em>(95%)</em> <b class="inline-fact">stellarity 0.81 · match 0.025&Prime;</b></dd></div>
+      </dl>
+
+      <div class="evidence-stack">
+        <section class="evidence evidence-color">
+          <div class="evidence-label"><span>01</span><div><strong>RELICS HST color image</strong><small>ACS + IR color stamp · HST source 2543</small></div></div>
+          <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp2543.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp2543.png" alt="RELICS HST ACS and infrared color image for source 2543" loading="lazy"></a>
+        </section>
+        <section class="evidence evidence-relics">
+          <div class="evidence-label"><span>02–03</span><div><strong>RELICS BPZ SED + P(z)</strong><small>HST photometry, BPZ model, and redshift probability</small></div></div>
+          <div class="relics-plots">
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_2543.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_2543.png" alt="RELICS BPZ photometry SED for source 2543" loading="lazy"></a>
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_2543.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_2543.png" alt="RELICS BPZ redshift probability plot for source 2543" loading="lazy"></a>
+          </div>
+        </section>
+        <section class="evidence evidence-wide venus-evidence">
+          <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 327 · direct EAZY SED and posterior</small></div></div>
+          <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/327.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_327.png" alt="VENUS EAZY SED and redshift probability plot for source 327" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/327.png?version=v0.2';"></a>
+          <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/327" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
+          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+        </section>
+      </div>
+    </article>
+    
+
+    <article class="target" id="target-1801" data-jwst="1801" data-relics="1983">
+      <div class="target-heading">
+        <div>
+          <p class="eyebrow">Target 18 · strict HST high-z agreement</p>
+          <h2><a class="venus-id" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/1801" target="_blank" rel="noreferrer">VENUS <span>1801</span></a> <small>↔</small> <a class="relics-id" href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/1983.html" target="_blank" rel="noreferrer">RELICS <span>1983</span></a></h2>
+          <p class="coordinates"><strong>RA 19:17:02.81</strong> <span>(289.261709°)</span><b>·</b><strong>Dec -33:31:49.13</strong> <span>(-33.530315°)</span></p>
+        </div>
+      </div>
+
+      <dl class="redshift-summary">
+        <div><dt>JWST VENUS</dt><dd>z = 6.797 <span>[6.628 – 6.945]</span> <em>(95%)</em></dd></div>
+        <div><dt>HST RELICS</dt><dd>z = 6.400 <span>[5.890 – 6.930]</span> <em>(95%)</em> <b class="inline-fact">stellarity 0.78 · match 0.021&Prime;</b></dd></div>
+      </dl>
+
+      <div class="evidence-stack">
+        <section class="evidence evidence-color">
+          <div class="evidence-label"><span>01</span><div><strong>RELICS HST color image</strong><small>ACS + IR color stamp · HST source 1983</small></div></div>
+          <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp1983.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp1983.png" alt="RELICS HST ACS and infrared color image for source 1983" loading="lazy"></a>
+        </section>
+        <section class="evidence evidence-relics">
+          <div class="evidence-label"><span>02–03</span><div><strong>RELICS BPZ SED + P(z)</strong><small>HST photometry, BPZ model, and redshift probability</small></div></div>
+          <div class="relics-plots">
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_1983.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_1983.png" alt="RELICS BPZ photometry SED for source 1983" loading="lazy"></a>
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_1983.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_1983.png" alt="RELICS BPZ redshift probability plot for source 1983" loading="lazy"></a>
+          </div>
+        </section>
+        <section class="evidence evidence-wide venus-evidence">
+          <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 1801 · direct EAZY SED and posterior</small></div></div>
+          <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/1801.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_1801.png" alt="VENUS EAZY SED and redshift probability plot for source 1801" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/1801.png?version=v0.2';"></a>
+          <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/1801" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
+          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+        </section>
+      </div>
+    </article>
+    
+
+    <article class="target" id="target-4335" data-jwst="4335" data-relics="738">
+      <div class="target-heading">
+        <div>
+          <p class="eyebrow">Target 19 · matched HST source</p>
+          <h2><a class="venus-id" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/4335" target="_blank" rel="noreferrer">VENUS <span>4335</span></a> <small>↔</small> <a class="relics-id" href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/738.html" target="_blank" rel="noreferrer">RELICS <span>738</span></a></h2>
+          <p class="coordinates"><strong>RA 19:17:01.89</strong> <span>(289.257864°)</span><b>·</b><strong>Dec -33:30:59.98</strong> <span>(-33.516662°)</span></p>
+        </div>
+      </div>
+
+      <dl class="redshift-summary">
+        <div><dt>JWST VENUS</dt><dd>z = -1.000 <span>[0.000 – 0.000]</span> <em>(95%)</em></dd></div>
+        <div><dt>HST RELICS</dt><dd>z = 5.520 <span>[0.770 – 5.910]</span> <em>(95%)</em> <b class="inline-fact">stellarity 0.74 · match 0.020&Prime;</b></dd></div>
+      </dl>
+
+      <div class="evidence-stack">
+        <section class="evidence evidence-color">
+          <div class="evidence-label"><span>01</span><div><strong>RELICS HST color image</strong><small>ACS + IR color stamp · HST source 738</small></div></div>
+          <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp738.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp738.png" alt="RELICS HST ACS and infrared color image for source 738" loading="lazy"></a>
+        </section>
+        <section class="evidence evidence-relics">
+          <div class="evidence-label"><span>02–03</span><div><strong>RELICS BPZ SED + P(z)</strong><small>HST photometry, BPZ model, and redshift probability</small></div></div>
+          <div class="relics-plots">
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_738.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_738.png" alt="RELICS BPZ photometry SED for source 738" loading="lazy"></a>
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_738.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_738.png" alt="RELICS BPZ redshift probability plot for source 738" loading="lazy"></a>
+          </div>
+        </section>
+        <section class="evidence evidence-wide venus-evidence">
+          <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 4335 · direct EAZY SED and posterior</small></div></div>
+          <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/4335.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_4335.png" alt="VENUS EAZY SED and redshift probability plot for source 4335" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/4335.png?version=v0.2';"></a>
+          <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/4335" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
+          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+        </section>
+      </div>
+    </article>
+    
+
+    <article class="target" id="target-5625" data-jwst="5625" data-relics="204">
+      <div class="target-heading">
+        <div>
+          <p class="eyebrow">Target 20 · matched HST source</p>
+          <h2><a class="venus-id" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/5625" target="_blank" rel="noreferrer">VENUS <span>5625</span></a> <small>↔</small> <a class="relics-id" href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/204.html" target="_blank" rel="noreferrer">RELICS <span>204</span></a></h2>
+          <p class="coordinates"><strong>RA 19:17:02.65</strong> <span>(289.261022°)</span><b>·</b><strong>Dec -33:30:27.76</strong> <span>(-33.507712°)</span></p>
+        </div>
+      </div>
+
+      <dl class="redshift-summary">
+        <div><dt>JWST VENUS</dt><dd>z = 6.319 <span>[6.012 – 6.560]</span> <em>(95%)</em></dd></div>
+        <div><dt>HST RELICS</dt><dd>z = 5.250 <span>[0.580 – 5.770]</span> <em>(95%)</em> <b class="inline-fact">stellarity 0.55 · match 0.050&Prime;</b></dd></div>
+      </dl>
+
+      <div class="evidence-stack">
+        <section class="evidence evidence-color">
+          <div class="evidence-label"><span>01</span><div><strong>RELICS HST color image</strong><small>ACS + IR color stamp · HST source 204</small></div></div>
+          <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp204.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp204.png" alt="RELICS HST ACS and infrared color image for source 204" loading="lazy"></a>
+        </section>
+        <section class="evidence evidence-relics">
+          <div class="evidence-label"><span>02–03</span><div><strong>RELICS BPZ SED + P(z)</strong><small>HST photometry, BPZ model, and redshift probability</small></div></div>
+          <div class="relics-plots">
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_204.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_204.png" alt="RELICS BPZ photometry SED for source 204" loading="lazy"></a>
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_204.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_204.png" alt="RELICS BPZ redshift probability plot for source 204" loading="lazy"></a>
+          </div>
+        </section>
+        <section class="evidence evidence-wide venus-evidence">
+          <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 5625 · direct EAZY SED and posterior</small></div></div>
+          <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/5625.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_5625.png" alt="VENUS EAZY SED and redshift probability plot for source 5625" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/5625.png?version=v0.2';"></a>
+          <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/5625" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
+          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+        </section>
+      </div>
+    </article>
+    
+
+    <article class="target" id="target-1184" data-jwst="1184" data-relics="2268">
+      <div class="target-heading">
+        <div>
+          <p class="eyebrow">Target 21 · matched HST source</p>
+          <h2><a class="venus-id" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/1184" target="_blank" rel="noreferrer">VENUS <span>1184</span></a> <small>↔</small> <a class="relics-id" href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/2268.html" target="_blank" rel="noreferrer">RELICS <span>2268</span></a></h2>
+          <p class="coordinates"><strong>RA 19:17:02.74</strong> <span>(289.261421°)</span><b>·</b><strong>Dec -33:32:03.11</strong> <span>(-33.534198°)</span></p>
+        </div>
+      </div>
+
+      <dl class="redshift-summary">
+        <div><dt>JWST VENUS</dt><dd>z = -1.000 <span>[0.000 – 0.000]</span> <em>(95%)</em></dd></div>
+        <div><dt>HST RELICS</dt><dd>z = 5.340 <span>[0.640 – 5.730]</span> <em>(95%)</em> <b class="inline-fact">stellarity 0.21 · match 0.066&Prime;</b></dd></div>
+      </dl>
+
+      <div class="evidence-stack">
+        <section class="evidence evidence-color">
+          <div class="evidence-label"><span>01</span><div><strong>RELICS HST color image</strong><small>ACS + IR color stamp · HST source 2268</small></div></div>
+          <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp2268.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp2268.png" alt="RELICS HST ACS and infrared color image for source 2268" loading="lazy"></a>
+        </section>
+        <section class="evidence evidence-relics">
+          <div class="evidence-label"><span>02–03</span><div><strong>RELICS BPZ SED + P(z)</strong><small>HST photometry, BPZ model, and redshift probability</small></div></div>
+          <div class="relics-plots">
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_2268.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_2268.png" alt="RELICS BPZ photometry SED for source 2268" loading="lazy"></a>
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_2268.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_2268.png" alt="RELICS BPZ redshift probability plot for source 2268" loading="lazy"></a>
+          </div>
+        </section>
+        <section class="evidence evidence-wide venus-evidence">
+          <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 1184 · direct EAZY SED and posterior</small></div></div>
+          <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/1184.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_1184.png" alt="VENUS EAZY SED and redshift probability plot for source 1184" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/1184.png?version=v0.2';"></a>
+          <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/1184" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
+          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+        </section>
+      </div>
+    </article>
+    
+
+    <article class="target" id="target-4763" data-jwst="4763" data-relics="536">
+      <div class="target-heading">
+        <div>
+          <p class="eyebrow">Target 22 · matched HST source</p>
+          <h2><a class="venus-id" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/4763" target="_blank" rel="noreferrer">VENUS <span>4763</span></a> <small>↔</small> <a class="relics-id" href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/536.html" target="_blank" rel="noreferrer">RELICS <span>536</span></a></h2>
+          <p class="coordinates"><strong>RA 19:17:02.35</strong> <span>(289.259809°)</span><b>·</b><strong>Dec -33:30:49.64</strong> <span>(-33.513788°)</span></p>
+        </div>
+      </div>
+
+      <dl class="redshift-summary">
+        <div><dt>JWST VENUS</dt><dd>z = 6.477 <span>[0.046 – 6.662]</span> <em>(95%)</em></dd></div>
+        <div><dt>HST RELICS</dt><dd>z = 5.390 <span>[0.800 – 5.870]</span> <em>(95%)</em> <b class="inline-fact">stellarity 0.72 · match 0.008&Prime;</b></dd></div>
+      </dl>
+
+      <div class="evidence-stack">
+        <section class="evidence evidence-color">
+          <div class="evidence-label"><span>01</span><div><strong>RELICS HST color image</strong><small>ACS + IR color stamp · HST source 536</small></div></div>
+          <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp536.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/colorstamps/ACSIR/stamp536.png" alt="RELICS HST ACS and infrared color image for source 536" loading="lazy"></a>
+        </section>
+        <section class="evidence evidence-relics">
+          <div class="evidence-label"><span>02–03</span><div><strong>RELICS BPZ SED + P(z)</strong><small>HST photometry, BPZ model, and redshift probability</small></div></div>
+          <div class="relics-plots">
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_536.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/sedplots/photometry_sed_536.png" alt="RELICS BPZ photometry SED for source 536" loading="lazy"></a>
+            <a href="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_536.png" target="_blank" rel="noreferrer"><img src="https://relics.stsci.edu/HST/plckg004-19/final_processing/catalogs/IR_detection/PhotoZ/html/probplots/withEazy/probplot_536.png" alt="RELICS BPZ redshift probability plot for source 536" loading="lazy"></a>
+          </div>
+        </section>
+        <section class="evidence evidence-wide venus-evidence">
+          <div class="evidence-label"><span>04</span><div><strong>VENUS EAZY SED + P(z)</strong><small>VENUS v0.2 source 4763 · direct EAZY SED and posterior</small></div></div>
+          <a href="https://venushub.astro.utoronto.ca/clusters/PG004/eazy/4763.png?version=v0.2" target="_blank" rel="noreferrer"><img class="venus-panel" src="venus_eazy/venus_eazy_4763.png" alt="VENUS EAZY SED and redshift probability plot for source 4763" loading="lazy" onerror="this.onerror=null; this.src='https://venushub.astro.utoronto.ca/clusters/PG004/eazy/4763.png?version=v0.2';"></a>
+          <a class="asset-link" href="https://venushub.astro.utoronto.ca/clusters/PG004/source/4763" target="_blank" rel="noreferrer">Open VENUS source page directly ↗</a>
+          <p class="asset-note">Plot served locally from VENUS EAZY assets; the link opens the live VENUS interactive source page.</p>
+        </section>
+      </div>
+    </article>
+    
+    </section>
+  </main>
+  <footer class="footer">
+    Coordinate residuals use global astrometric offset: VENUS − HST = +0.536463 arcsec in projected RA and −0.001390 arcsec in Dec. Generated by <a href="make_relics_venus_html.py">make_relics_venus_html.py</a>.
+  </footer>
+
+  <script>
+    const searchInput = document.getElementById('id-search');
+    const clearBtn = document.getElementById('clear-btn');
+    const visibleCount = document.getElementById('visible-count');
+    const targets = Array.from(document.querySelectorAll('.target'));
+    const navLinks = Array.from(document.querySelectorAll('.index a'));
+
+    function filterTargets() {
+      const query = (searchInput.value || '').trim().toLowerCase();
+      if (!query) {
+        targets.forEach(t => t.classList.remove('hidden'));
+        navLinks.forEach(n => n.classList.remove('hidden'));
+        visibleCount.textContent = targets.length;
+        return;
+      }
+      const tokens = query.split(/[\s,]+/).filter(Boolean);
+      let count = 0;
+
+      targets.forEach((target, i) => {
+        const jwst = (target.dataset.jwst || '').toLowerCase();
+        const relics = (target.dataset.relics || '').toLowerCase();
+        const match = tokens.some(t => jwst.includes(t) || relics.includes(t));
+        if (match) {
+          target.classList.remove('hidden');
+          navLinks[i].classList.remove('hidden');
+          count++;
+        } else {
+          target.classList.add('hidden');
+          navLinks[i].classList.add('hidden');
+        }
+      });
+      visibleCount.textContent = count;
+    }
+
+    if (searchInput) {
+      searchInput.addEventListener('input', filterTargets);
+      clearBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        filterTargets();
+        searchInput.focus();
+      });
+    }
+  </script>
+</body>
+</html>

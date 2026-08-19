@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VENUS × RELICS · Cluster High-z Exploration Hub</title>
+  <style>
+    :root {
+      --ink: #15262b;
+      --muted: #607477;
+      --paper: #f4f1e9;
+      --panel: #fffdf8;
+      --line: #d8ddd5;
+      --cyan: #007f86;
+      --yellow: #f2c94c;
+      --coral: #c95d4e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: Georgia, 'Times New Roman', serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .28;
+      background-image: linear-gradient(135deg, rgba(0,127,134,.06) 25%, transparent 25%), linear-gradient(315deg, rgba(201,93,78,.035) 25%, transparent 25%);
+      background-size: 34px 34px;
+      z-index: -1;
+    }
+    a { color: inherit; text-decoration: none; }
+    .masthead {
+      border-bottom: 1px solid var(--line);
+      background: rgba(244,241,233,.94);
+      padding: 44px 36px 36px;
+    }
+    .kicker {
+      font-family: 'Helvetica Neue', Helvetica, sans-serif;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      font-size: 12px;
+      font-weight: 700;
+      margin: 0 0 12px;
+    }
+    h1 {
+      font-size: clamp(36px, 6vw, 64px);
+      line-height: 1.0;
+      letter-spacing: -.025em;
+      margin: 0 0 16px;
+      font-weight: 500;
+    }
+    .dek {
+      max-width: 780px;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.6;
+      margin: 0;
+    }
+    .main {
+      flex: 1;
+      padding: 40px 36px 80px;
+      max-width: 1200px;
+      width: 100%;
+    }
+    .section-title {
+      font-family: 'Helvetica Neue', Helvetica, sans-serif;
+      font-size: 13px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0 0 20px;
+      border-bottom: 2px solid var(--ink);
+      padding-bottom: 8px;
+    }
+    .clusters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 24px;
+    }
+    .cluster-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 24px 26px;
+      transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .cluster-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--cyan);
+      box-shadow: 0 8px 24px rgba(0, 127, 134, 0.08);
+    }
+    .cluster-card.active {
+      border-left: 4px solid var(--coral);
+    }
+    .cluster-name {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--ink);
+      margin: 0 0 6px;
+    }
+    .cluster-alias {
+      font-family: 'Helvetica Neue', Helvetica, sans-serif;
+      font-size: 12px;
+      color: var(--cyan);
+      font-weight: 700;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .cluster-desc {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+      margin: 0 0 20px;
+    }
+    .cluster-meta {
+      display: flex;
+      gap: 16px;
+      font-family: 'Helvetica Neue', Helvetica, sans-serif;
+      font-size: 12px;
+      border-top: 1px solid var(--line);
+      padding-top: 14px;
+      color: var(--muted);
+    }
+    .cluster-meta strong {
+      color: var(--ink);
+    }
+    .btn-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 18px;
+      font-family: 'Helvetica Neue', Helvetica, sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--cyan);
+    }
+    .btn-link:hover {
+      text-decoration: underline;
+    }
+    .badge-soon {
+      display: inline-block;
+      font-family: 'Helvetica Neue', Helvetica, sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+      color: var(--muted);
+      background: #e5e9e2;
+      padding: 3px 8px;
+      border-radius: 3px;
+      align-self: flex-start;
+      margin-top: 14px;
+    }
+    .footer {
+      border-top: 1px solid var(--line);
+      padding: 24px 36px;
+      color: var(--muted);
+      font-family: 'Helvetica Neue', Helvetica, sans-serif;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <header class="masthead">
+    <p class="kicker">JWST VENUS × HST RELICS</p>
+    <h1>Cluster Evidence Hub</h1>
+    <p class="dek">Interactive crossmatch browsers comparing HST photometry, morphology, and BPZ redshifts with JWST NIRCam photometry and EAZY SED fits across lensing galaxy clusters.</p>
+  </header>
+
+  <main class="main">
+    <h2 class="section-title">Galaxy Clusters</h2>
+    <div class="clusters-grid">
+      
+      <!-- PG004 -->
+      <a class="cluster-card active" href="PG004/RELICS/RELICS_VENUS.html">
+        <div>
+          <div class="cluster-alias">PLCKG004-19</div>
+          <div class="cluster-name">PG004</div>
+          <p class="cluster-desc">HST RELICS high-z candidate matching against 11,699 JWST sources. 22 matched targets with HST color stamps, BPZ SEDs, and VENUS EAZY SED + P(z) posteriors.</p>
+        </div>
+        <div>
+          <div class="cluster-meta">
+            <div><strong>28</strong> RELICS high-z</div>
+            <div><strong>22</strong> Matched</div>
+            <div><strong>11.7k</strong> JWST total</div>
+          </div>
+          <span class="btn-link">Open Evidence Browser &rarr;</span>
+        </div>
+      </a>
+
+    </div>
+  </main>
+
+  <footer class="footer">
+    Maintained by Dan Coe &middot; Hosted on GitHub Pages via <a href="https://github.com/dancoe/VENUS-RELICS" style="text-decoration: underline;">dancoe/VENUS-RELICS</a>.
+  </footer>
+</body>
+</html>
